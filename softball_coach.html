@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Softball Coach Assistant</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a1628;--bg2:#0f1f3d;--bg3:#162848;--bg4:#1e3560;
+  --red:#c0392b;--red2:#e74c3c;--red3:#ff6b5b;
+  --white:#f8f9fa;--text:#e8edf5;--gray:#8892a4;--gray2:#5a6577;
+  --green:#27ae60;--amber:#e67e22;--blue:#3498db;
+  --shadow:0 4px 12px rgba(0,0,0,.3);
+}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;line-height:1.5}
+button,input,select,textarea{font-family:inherit}
+button{cursor:pointer;border:none;background:none;color:inherit}
+a{color:var(--red3);text-decoration:none}
+
+/* ── HEADER ─────────────────────────────────── */
+header{background:var(--bg2);border-bottom:3px solid var(--red);padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:50}
+.logo{font-size:20px;font-weight:700;letter-spacing:-0.3px;display:flex;align-items:center;gap:8px}
+.logo span{color:var(--red3)}
+.team-name{color:var(--gray);font-size:13px;padding-left:12px;border-left:1px solid var(--bg4);margin-left:4px}
+.header-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.icon-btn{background:transparent;border:1px solid var(--bg4);color:var(--gray);padding:7px 12px;border-radius:6px;font-size:12px;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+.icon-btn:hover{border-color:var(--gray);color:var(--white)}
+.icon-btn.ok{border-color:var(--green);color:var(--green)}
+.icon-btn.warn{border-color:var(--amber);color:var(--amber)}
+
+/* ── NAV ────────────────────────────────────── */
+nav{background:var(--bg2);display:flex;border-bottom:1px solid var(--bg3);overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{padding:14px 18px;color:var(--gray);font-size:13px;font-weight:500;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+nav button.active{color:var(--white);border-bottom-color:var(--red2)}
+nav button:hover:not(.active){color:var(--text);background:rgba(255,255,255,.02)}
+.nav-icon{font-size:14px}
+
+/* ── MAIN ───────────────────────────────────── */
+main{flex:1;padding:20px;max-width:1200px;width:100%;margin:0 auto}
+.tab{display:none;animation:fadeIn .2s}
+.tab.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+h1{font-size:22px;margin-bottom:4px}
+h2{font-size:18px;margin-bottom:8px}
+h3{font-size:15px;margin-bottom:10px;color:var(--text)}
+.subtitle{color:var(--gray);font-size:13px;margin-bottom:18px}
+
+/* ── FORM ELEMENTS ──────────────────────────── */
+label{display:block;font-size:11px;color:var(--gray);margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--bg4);color:var(--white);padding:9px 12px;border-radius:7px;font-size:14px;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--red2)}
+select option{background:var(--bg2)}
+textarea{resize:vertical;line-height:1.5}
+.form-row{display:grid;gap:12px;margin-bottom:12px}
+.form-row.c2{grid-template-columns:1fr 1fr}
+.form-row.c3{grid-template-columns:repeat(3,1fr)}
+.form-row.c4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:640px){.form-row.c2,.form-row.c3,.form-row.c4{grid-template-columns:1fr}}
+.form-group{margin-bottom:12px}
+
+.btn{background:var(--red);color:#fff;padding:10px 18px;border-radius:7px;font-size:14px;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover:not(:disabled){background:var(--red2);transform:translateY(-1px)}
+.btn:disabled{background:var(--bg4);cursor:not-allowed;color:var(--gray)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-ghost{background:transparent;border:1px solid var(--bg4);color:var(--text)}
+.btn-ghost:hover:not(:disabled){border-color:var(--gray);background:rgba(255,255,255,.03)}
+.btn-danger{background:var(--bg3);color:var(--red3);border:1px solid var(--red)}
+.btn-danger:hover:not(:disabled){background:var(--red);color:#fff}
+.btn-blue{background:var(--blue)}
+.btn-blue:hover:not(:disabled){background:#5dade2}
+
+/* ── CARDS ──────────────────────────────────── */
+.card{background:var(--bg2);border:1px solid var(--bg3);border-radius:10px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card.compact{padding:12px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap}
+.card-head h3{margin:0}
+
+/* ── OUTPUT (MARKDOWN) ──────────────────────── */
+.output{background:var(--bg);border:1px solid var(--bg4);border-radius:8px;padding:18px;font-size:14px;line-height:1.7;color:var(--text);min-height:80px}
+.output.empty{color:var(--gray);font-style:italic;text-align:center}
+.output.error{color:var(--red3);border-color:var(--red)}
+.output h1,.output h2,.output h3{color:var(--white);margin:14px 0 8px}
+.output h1{font-size:18px}.output h2{font-size:16px}.output h3{font-size:14px;color:var(--red3)}
+.output ul,.output ol{margin:8px 0 8px 22px}
+.output li{margin-bottom:3px}
+.output p{margin:8px 0}
+.output strong{color:var(--white)}
+.output code{background:var(--bg3);padding:2px 6px;border-radius:3px;font-size:12px;color:var(--red3)}
+.output pre{background:var(--bg3);padding:10px;border-radius:6px;overflow-x:auto;margin:10px 0}
+.output blockquote{border-left:3px solid var(--red);padding-left:12px;color:var(--gray);margin:8px 0}
+.output hr{border:none;border-top:1px solid var(--bg4);margin:14px 0}
+.output table{border-collapse:collapse;margin:10px 0;width:100%}
+.output th,.output td{border:1px solid var(--bg4);padding:6px 10px;text-align:left;font-size:13px}
+.output th{background:var(--bg3)}
+
+.cursor{display:inline-block;width:8px;height:14px;background:var(--red3);animation:blink 1s infinite;vertical-align:middle}
+@keyframes blink{50%{opacity:0}}
+
+/* ── DASHBOARD ──────────────────────────────── */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px}
+.stat-tile{background:var(--bg2);border:1px solid var(--bg3);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:4px}
+.stat-tile .num{font-size:32px;font-weight:700;color:var(--white);line-height:1}
+.stat-tile .lbl{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:.6px}
+.stat-tile .sub{font-size:12px;color:var(--gray2);margin-top:6px}
+.stat-tile.accent{border-color:var(--red);background:linear-gradient(180deg,var(--bg2),rgba(192,57,43,.05))}
+.stat-tile.accent .num{color:var(--red3)}
+
+/* ── CHAT ───────────────────────────────────── */
+.chat-layout{display:grid;grid-template-columns:240px 1fr;gap:14px;min-height:500px}
+@media(max-width:760px){.chat-layout{grid-template-columns:1fr;min-height:auto}.chat-sidebar{max-height:200px}}
+.chat-sidebar{background:var(--bg2);border:1px solid var(--bg3);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+.chat-thread{padding:10px 12px;border-radius:7px;background:var(--bg);border:1px solid var(--bg4);cursor:pointer;font-size:13px;transition:all .15s;display:flex;align-items:center;gap:8px}
+.chat-thread:hover{border-color:var(--gray2)}
+.chat-thread.active{background:var(--red);color:#fff;border-color:var(--red);font-weight:500}
+.chat-thread .ttitle{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-thread .del{opacity:.5;font-size:14px;line-height:1}
+.chat-thread:hover .del{opacity:1}
+.chat-main{display:flex;flex-direction:column;background:var(--bg2);border:1px solid var(--bg3);border-radius:10px;overflow:hidden}
+.chat-msgs{flex:1;padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;min-height:400px;max-height:60vh}
+.msg{max-width:85%;padding:12px 16px;border-radius:12px;font-size:14px;line-height:1.6;word-wrap:break-word}
+.msg.user{align-self:flex-end;background:var(--red);color:#fff;border-radius:12px 12px 2px 12px}
+.msg.assistant{align-self:flex-start;background:var(--bg);border:1px solid var(--bg4);border-radius:12px 12px 12px 2px}
+.msg.assistant p:first-child{margin-top:0}
+.msg.assistant p:last-child{margin-bottom:0}
+.msg.assistant h1,.msg.assistant h2,.msg.assistant h3{color:var(--white);margin:8px 0 4px}
+.msg.assistant ul,.msg.assistant ol{margin:6px 0 6px 22px}
+.msg.assistant code{background:var(--bg3);padding:2px 6px;border-radius:3px;font-size:12px;color:var(--red3)}
+.msg.assistant pre{background:var(--bg3);padding:10px;border-radius:6px;overflow-x:auto;margin:8px 0}
+.chat-input-bar{border-top:1px solid var(--bg3);padding:12px;display:flex;gap:8px;background:var(--bg2)}
+.chat-input-bar input{flex:1}
+
+/* ── GAME LIST / ROSTER ─────────────────────── */
+.game-list,.list{display:flex;flex-direction:column;gap:8px;max-height:500px;overflow-y:auto}
+.game-item{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:12px;align-items:center;background:var(--bg);border:1px solid var(--bg4);border-radius:8px;padding:10px 14px;font-size:13px;transition:border-color .15s}
+.game-item:hover{border-color:var(--gray2)}
+.badge{padding:3px 9px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.5px;text-align:center;min-width:32px}
+.badge.w{background:rgba(39,174,96,.15);color:var(--green);border:1px solid rgba(39,174,96,.4)}
+.badge.l{background:rgba(231,76,60,.15);color:var(--red3);border:1px solid rgba(231,76,60,.4)}
+.badge.t{background:rgba(230,126,34,.15);color:var(--amber);border:1px solid rgba(230,126,34,.4)}
+.game-meta{color:var(--gray);font-size:12px}
+.game-score{font-weight:600;font-variant-numeric:tabular-nums}
+.icon-action{background:transparent;color:var(--gray);font-size:14px;padding:4px 6px;border-radius:4px;line-height:1}
+.icon-action:hover{color:var(--red3);background:var(--bg3)}
+
+.empty{text-align:center;color:var(--gray);font-size:13px;padding:40px 20px;background:var(--bg);border:1px dashed var(--bg4);border-radius:8px}
+
+/* ── PLAYER CARD ────────────────────────────── */
+.player-card{background:var(--bg);border:1px solid var(--bg4);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.player-head{display:flex;align-items:center;gap:10px}
+.jersey{width:36px;height:36px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+.player-info{flex:1}
+.player-name{font-weight:600;font-size:14px;color:var(--white)}
+.player-pos{font-size:12px;color:var(--gray)}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:11px}
+.stat-cell{background:var(--bg3);padding:6px 8px;border-radius:4px;text-align:center}
+.stat-cell .v{display:block;font-weight:600;color:var(--white);font-size:13px}
+.stat-cell .k{color:var(--gray);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── TABLES ─────────────────────────────────── */
+.table-wrap{overflow-x:auto;background:var(--bg);border:1px solid var(--bg4);border-radius:8px}
+table.data{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+table.data th,table.data td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--bg4)}
+table.data th{background:var(--bg3);color:var(--gray);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;position:sticky;top:0}
+table.data tr:hover td{background:var(--bg2)}
+table.data td.num{text-align:right;font-weight:500}
+table.data tr:last-child td{border-bottom:none}
+
+/* ── MODAL ──────────────────────────────────── */
+.modal-bg{position:fixed;inset:0;background:rgba(5,12,25,.85);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;animation:fadeIn .15s}
+.modal{background:var(--bg2);border:1px solid var(--bg4);border-radius:12px;padding:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow)}
+.modal h2{font-size:17px;margin-bottom:6px}
+.modal-text{color:var(--gray);font-size:13px;margin-bottom:16px;line-height:1.6}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+
+/* ── TOAST ──────────────────────────────────── */
+#toast-container{position:fixed;top:80px;right:20px;z-index:300;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--bg2);border:1px solid var(--bg4);border-left:3px solid var(--green);border-radius:7px;padding:10px 16px;font-size:13px;box-shadow:var(--shadow);animation:slideIn .2s;min-width:200px}
+.toast.error{border-left-color:var(--red2)}
+.toast.warn{border-left-color:var(--amber)}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:none;opacity:1}}
+
+/* ── TAGS / CHIPS ───────────────────────────── */
+.tag{background:var(--bg3);color:var(--text);padding:4px 10px;border-radius:20px;font-size:12px;display:inline-flex;align-items:center;gap:6px}
+.tag button{color:var(--gray);font-size:14px;line-height:1}
+.tag button:hover{color:var(--red3)}
+.tag-grid{display:flex;flex-wrap:wrap;gap:6px}
+
+/* ── LIBRARY ITEMS ──────────────────────────── */
+.lib-item{background:var(--bg);border:1px solid var(--bg4);border-radius:8px;padding:14px;cursor:pointer;transition:all .15s}
+.lib-item:hover{border-color:var(--gray2);transform:translateY(-1px)}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:12px}
+.lib-title{font-weight:600;color:var(--white);font-size:14px;margin-bottom:4px}
+.lib-meta{color:var(--gray);font-size:11px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
+.lib-preview{color:var(--gray);font-size:12px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.lib-actions{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--bg4)}
+
+/* ── CHARTS ─────────────────────────────────── */
+.chart-wrap{position:relative;height:240px}
+
+/* ── LINEUP ─────────────────────────────────── */
+.lineup-row{display:grid;grid-template-columns:32px 1fr auto;gap:8px;align-items:center;padding:8px 12px;background:var(--bg);border:1px solid var(--bg4);border-radius:6px;margin-bottom:6px;cursor:move}
+.lineup-row.dragging{opacity:.4}
+.lineup-row .ord{color:var(--red3);font-weight:700}
+.lineup-row select{padding:4px 8px;font-size:12px;width:auto}
+
+/* ── SCROLLBARS ─────────────────────────────── */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--gray2)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚾ Softball <span>Coach</span></div>
+  <div class="team-name" id="header-team">Setting up…</div>
+  <div class="header-actions">
+    <button class="icon-btn" onclick="openSettings()" title="Settings">⚙ Settings</button>
+    <button class="icon-btn" id="keyBtn" onclick="openKeyModal()" title="API Key">🔑 Set Key</button>
+  </div>
+</header>
+
+<nav>
+  <button class="active" data-tab="dashboard"><span class="nav-icon">📊</span>Dashboard</button>
+  <button data-tab="practice"><span class="nav-icon">📋</span>Practice</button>
+  <button data-tab="coach"><span class="nav-icon">💬</span>Coach AI</button>
+  <button data-tab="season"><span class="nav-icon">🏆</span>Season</button>
+  <button data-tab="roster"><span class="nav-icon">👥</span>Roster</button>
+  <button data-tab="library"><span class="nav-icon">📚</span>Library</button>
+</nav>
+
+<main>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║              DASHBOARD                   ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="tab active" id="tab-dashboard">
+  <h1>Team dashboard</h1>
+  <p class="subtitle" id="dash-sub">Season at a glance</p>
+
+  <div class="dash-grid">
+    <div class="stat-tile accent">
+      <div class="num" id="d-record">0–0</div>
+      <div class="lbl">Record</div>
+      <div class="sub" id="d-record-sub">No games yet</div>
+    </div>
+    <div class="stat-tile">
+      <div class="num" id="d-winpct">—</div>
+      <div class="lbl">Win %</div>
+      <div class="sub" id="d-winpct-sub">Add a game to start</div>
+    </div>
+    <div class="stat-tile">
+      <div class="num" id="d-streak">—</div>
+      <div class="lbl">Streak</div>
+      <div class="sub" id="d-streak-sub">—</div>
+    </div>
+    <div class="stat-tile">
+      <div class="num" id="d-rundiff">—</div>
+      <div class="lbl">Run differential</div>
+      <div class="sub" id="d-rundiff-sub">—</div>
+    </div>
+    <div class="stat-tile">
+      <div class="num" id="d-roster">0</div>
+      <div class="lbl">Roster</div>
+      <div class="sub" id="d-roster-sub">—</div>
+    </div>
+    <div class="stat-tile">
+      <div class="num" id="d-plans">0</div>
+      <div class="lbl">Practice plans</div>
+      <div class="sub" id="d-plans-sub">Saved</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Recent games</h3>
+      <button class="icon-btn btn-sm" onclick="goTab('season')">View all →</button>
+    </div>
+    <div class="game-list" id="dash-games"><div class="empty">No games yet. Head to Season to log one.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Most recent practice plan</h3>
+      <button class="icon-btn btn-sm" onclick="goTab('practice')">Generator →</button>
+    </div>
+    <div id="dash-plan"><div class="empty">No saved plans yet.</div></div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║              PRACTICE                    ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="tab" id="tab-practice">
+  <h1>Practice plans</h1>
+  <p class="subtitle">Generate, save, and revisit your team's practice plans</p>
+
+  <div class="card">
+    <h3>New practice plan</h3>
+    <div class="form-row c2">
+      <div>
+        <label>Age group</label>
+        <select id="pp-age"><option>8U</option><option>10U</option><option>12U</option><option>14U</option><option>16U</option><option>18U</option></select>
+      </div>
+      <div>
+        <label>Duration</label>
+        <select id="pp-dur"><option>60 minutes</option><option selected>90 minutes</option><option>2 hours</option><option>2.5 hours</option></select>
+      </div>
+    </div>
+    <div class="form-row c2">
+      <div>
+        <label>Player count</label>
+        <select id="pp-players"><option>6–8</option><option selected>9–12</option><option>13–15</option></select>
+      </div>
+      <div>
+        <label>Focus area</label>
+        <select id="pp-focus">
+          <option>Hitting mechanics</option><option>Pitching fundamentals</option>
+          <option>Fielding & defense</option><option>Baserunning</option>
+          <option>Catching</option><option>Game situations</option>
+          <option>Conditioning & athleticism</option><option>Pre-tournament prep</option>
+          <option>Full team practice</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Additional context (optional)</label>
+      <textarea id="pp-notes" rows="2" placeholder="e.g. Tournament Saturday, work on slap hitting, indoor only, 3 specific players struggling with X..."></textarea>
+    </div>
+    <button class="btn" id="pp-btn" onclick="genPractice()">⚡ Generate plan</button>
+  </div>
+
+  <div class="card" id="pp-out-card" style="display:none">
+    <div class="card-head">
+      <h3 id="pp-out-title">Practice plan</h3>
+      <div style="display:flex;gap:6px">
+        <button class="icon-btn btn-sm" onclick="savePlan()">💾 Save</button>
+        <button class="icon-btn btn-sm" onclick="copyPlan()">📋 Copy</button>
+        <button class="icon-btn btn-sm" onclick="printPlan()">🖨 Print</button>
+      </div>
+    </div>
+    <div class="output" id="pp-out"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Saved plans (<span id="pp-count">0</span>)</h3></div>
+    <div class="lib-grid" id="pp-library"></div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║              COACH AI                    ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="tab" id="tab-coach">
+  <h1>Coach AI</h1>
+  <p class="subtitle">Ask anything — mechanics, drills, strategy, parent dynamics, player development</p>
+
+  <div class="chat-layout">
+    <div class="chat-sidebar">
+      <button class="btn btn-sm" onclick="newThread()" style="margin-bottom:6px">+ New chat</button>
+      <div id="thread-list"></div>
+    </div>
+    <div class="chat-main">
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <div class="chat-input-bar">
+        <input type="text" id="chat-input" placeholder="Ask a coaching question..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="btn" id="chat-btn" onclick="sendChat()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║              SEASON                      ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="tab" id="tab-season">
+  <h1>Season tracker</h1>
+  <p class="subtitle">Game results, run differentials, and visual trends</p>
+
+  <div class="dash-grid">
+    <div class="stat-tile"><div class="num" id="s-w">0</div><div class="lbl">Wins</div></div>
+    <div class="stat-tile"><div class="num" id="s-l">0</div><div class="lbl">Losses</div></div>
+    <div class="stat-tile"><div class="num" id="s-t">0</div><div class="lbl">Ties</div></div>
+    <div class="stat-tile"><div class="num" id="s-rs">0</div><div class="lbl">Runs scored</div></div>
+    <div class="stat-tile"><div class="num" id="s-ra">0</div><div class="lbl">Runs allowed</div></div>
+    <div class="stat-tile"><div class="num" id="s-avg">.000</div><div class="lbl">Team AVG</div></div>
+  </div>
+
+  <div class="card">
+    <h3>Win/loss trend</h3>
+    <div class="chart-wrap"><canvas id="chart-record"></canvas></div>
+  </div>
+
+  <div class="card">
+    <h3>Add game result</h3>
+    <div class="form-row c4">
+      <div><label>Date</label><input type="date" id="g-date"></div>
+      <div><label>Opponent</label><input type="text" id="g-opp" placeholder="Team name"></div>
+      <div><label>Location</label><select id="g-loc"><option>Home</option><option>Away</option><option>Neutral</option></select></div>
+      <div><label>Result</label><select id="g-res"><option value="W">Win</option><option value="L">Loss</option><option value="T">Tie</option></select></div>
+    </div>
+    <div class="form-row c4">
+      <div><label>Our score</label><input type="number" id="g-us" min="0" placeholder="0"></div>
+      <div><label>Their score</label><input type="number" id="g-them" min="0" placeholder="0"></div>
+      <div><label>Type</label><select id="g-type"><option>Regular</option><option>Tournament</option><option>Scrimmage</option><option>Showcase</option></select></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn" onclick="addGame()" style="width:100%">+ Add game</button></div>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <input type="text" id="g-notes" placeholder="Standout moments, weather, key plays...">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Game log (<span id="game-count">0</span>)</h3></div>
+    <div class="game-list" id="game-list"><div class="empty">No games logged yet.</div></div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║              ROSTER                      ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="tab" id="tab-roster">
+  <h1>Roster</h1>
+  <p class="subtitle">Players, positions, season stats, and development notes</p>
+
+  <div class="card">
+    <h3>Add player</h3>
+    <div class="form-row c4">
+      <div><label>Name</label><input type="text" id="p-name" placeholder="First Last"></div>
+      <div><label>Jersey #</label><input type="text" id="p-jersey" placeholder="21"></div>
+      <div><label>Primary pos</label><select id="p-pos"><option>P</option><option>C</option><option>1B</option><option>2B</option><option>3B</option><option>SS</option><option>LF</option><option>CF</option><option>RF</option><option>UTIL</option></select></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn" onclick="addPlayer()" style="width:100%">+ Add player</button></div>
+    </div>
+    <div class="form-row c2">
+      <div><label>Bats</label><select id="p-bats"><option>R</option><option>L</option><option>S</option></select></div>
+      <div><label>Throws</label><select id="p-throws"><option>R</option><option>L</option></select></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Players (<span id="p-count">0</span>)</h3></div>
+    <div class="lib-grid" id="roster-grid"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Season batting stats</h3></div>
+    <div class="table-wrap">
+      <table class="data" id="stats-table">
+        <thead><tr><th>#</th><th>Player</th><th>Pos</th><th>G</th><th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>R</th><th>BB</th><th>K</th><th>SB</th><th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th></tr></thead>
+        <tbody id="stats-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║              LIBRARY                     ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="tab" id="tab-library">
+  <h1>Drill & skill library</h1>
+  <p class="subtitle">Research a topic and save the breakdown for later</p>
+
+  <div class="card">
+    <h3>Research a skill</h3>
+    <div class="form-row c3">
+      <div><label>Age group</label><select id="sk-age"><option>8U</option><option>10U</option><option>12U</option><option>14U</option><option>16U</option><option>18U</option></select></div>
+      <div><label>Skill level</label><select id="sk-level"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div>
+      <div><label>Category</label><select id="sk-cat"><option>Hitting</option><option>Pitching</option><option>Fielding</option><option>Catching</option><option>Baserunning</option><option>Mental game</option><option>Conditioning</option><option>Other</option></select></div>
+    </div>
+    <div class="form-group">
+      <label>Topic</label>
+      <input type="text" id="sk-topic" placeholder="e.g. drop ball grip, slap hitting, double-play turn, framing pitches...">
+    </div>
+    <button class="btn" id="sk-btn" onclick="researchSkill()">🔍 Research</button>
+  </div>
+
+  <div class="card" id="sk-out-card" style="display:none">
+    <div class="card-head">
+      <h3 id="sk-out-title">Research</h3>
+      <div style="display:flex;gap:6px">
+        <button class="icon-btn btn-sm" onclick="saveResearch()">💾 Save to library</button>
+      </div>
+    </div>
+    <div class="output" id="sk-out"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>Saved (<span id="lib-count">0</span>)</h3>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="text" id="lib-search" placeholder="Search..." style="width:180px;padding:6px 10px;font-size:12px" oninput="renderLibrary()">
+        <select id="lib-filter" onchange="renderLibrary()" style="width:auto;padding:6px 10px;font-size:12px">
+          <option value="">All categories</option><option>Hitting</option><option>Pitching</option><option>Fielding</option><option>Catching</option><option>Baserunning</option><option>Mental game</option><option>Conditioning</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="lib-grid" id="lib-grid"></div>
+  </div>
+</div>
+
+</main>
+
+<!-- ── MODALS ─────────────────────────────────── -->
+<div class="modal-bg" id="modal-key" style="display:none">
+  <div class="modal">
+    <h2>Anthropic API key</h2>
+    <p class="modal-text">Stored in your browser's local storage so you don't have to re-enter it. Never sent anywhere except directly to api.anthropic.com. Get one at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.</p>
+    <input type="password" id="keyInput" placeholder="sk-ant-..." autocomplete="off">
+    <label style="display:flex;align-items:center;gap:8px;margin-top:12px;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)">
+      <input type="checkbox" id="keyRemember" style="width:auto" checked> Remember in this browser
+    </label>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-key')">Cancel</button>
+      <button class="btn" onclick="saveKey()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-settings" style="display:none">
+  <div class="modal">
+    <h2>Settings</h2>
+    <p class="modal-text">Team info, defaults, and data management.</p>
+    <div class="form-row c2">
+      <div><label>Team name</label><input type="text" id="set-team" placeholder="My Team"></div>
+      <div><label>Default age group</label><select id="set-age"><option>8U</option><option>10U</option><option>12U</option><option>14U</option><option>16U</option><option>18U</option></select></div>
+    </div>
+    <div class="form-group">
+      <label>Season label</label>
+      <input type="text" id="set-season" placeholder="Spring 2026">
+    </div>
+    <hr style="border:none;border-top:1px solid var(--bg4);margin:18px 0">
+    <h3 style="margin-bottom:8px">Data</h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="icon-btn btn-sm" onclick="exportData()">⬇ Export JSON</button>
+      <button class="icon-btn btn-sm" onclick="document.getElementById('importFile').click()">⬆ Import JSON</button>
+      <input type="file" id="importFile" accept=".json" hidden onchange="importData(this.files[0])">
+      <button class="icon-btn btn-sm btn-danger" onclick="resetAll()">🗑 Reset all data</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-settings')">Cancel</button>
+      <button class="btn" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-view" style="display:none">
+  <div class="modal" style="max-width:720px">
+    <h2 id="modal-view-title">Item</h2>
+    <p class="modal-text" id="modal-view-meta"></p>
+    <div class="output" id="modal-view-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-view')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-game" style="display:none">
+  <div class="modal" style="max-width:780px">
+    <h2 id="modal-game-title">Game stats</h2>
+    <p class="modal-text">Enter individual batting lines for this game.</p>
+    <div id="modal-game-body" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-game')">Cancel</button>
+      <button class="btn" onclick="saveGameStats()">Save stats</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-player" style="display:none">
+  <div class="modal" style="max-width:600px">
+    <h2 id="modal-player-title">Player</h2>
+    <p class="modal-text" id="modal-player-meta"></p>
+    <div id="modal-player-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="deletePlayer()">Delete player</button>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="closeModal('modal-player')">Close</button>
+        <button class="btn" onclick="saveplayerNotes()">Save notes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// STORAGE — localStorage with graceful in-memory fallback
+// ═══════════════════════════════════════════════════════════
+const KEY = 'softball-coach-v2';
+let store = {
+  apiKey: '',
+  rememberKey: true,
+  settings: { teamName: 'My Team', defaultAge: '10U', season: 'Spring 2026' },
+  players: [],     // {id, name, jersey, pos, bats, throws, notes}
+  games: [],       // {id, date, opp, loc, type, res, us, them, notes, stats:{playerId:{ab,h,d,t,hr,rbi,r,bb,k,sb}}}
+  plans: [],       // {id, title, content, age, dur, focus, created}
+  research: [],    // {id, topic, category, age, level, content, created}
+  threads: [],     // {id, title, messages:[{role,content}], created}
+  activeThreadId: null,
+};
+
+let _memoryOnly = false;
+function loadStore() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) Object.assign(store, JSON.parse(raw));
+  } catch(e) { _memoryOnly = true; console.warn('localStorage unavailable — running in session memory'); }
+}
+function saveStore() {
+  if (_memoryOnly) return;
+  try {
+    const toSave = {...store};
+    if (!store.rememberKey) toSave.apiKey = '';
+    localStorage.setItem(KEY, JSON.stringify(toSave));
+  } catch(e) { _memoryOnly = true; toast('Storage unavailable, changes won\'t persist','warn'); }
+}
+const uid = () => Math.random().toString(36).slice(2,10);
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+function toast(msg, kind='ok') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast' + (kind==='error'?' error':kind==='warn'?' warn':'');
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 2800);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODALS / TABS
+// ═══════════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).style.display='flex'; }
+function closeModal(id) { document.getElementById(id).style.display='none'; }
+function goTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelector(`nav button[data-tab="${name}"]`)?.classList.add('active');
+  if (name==='season') drawChart();
+}
+document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => goTab(b.dataset.tab)));
+
+// ═══════════════════════════════════════════════════════════
+// SETTINGS / KEY
+// ═══════════════════════════════════════════════════════════
+function openKeyModal() {
+  document.getElementById('keyInput').value = store.apiKey;
+  document.getElementById('keyRemember').checked = store.rememberKey;
+  openModal('modal-key');
+  document.getElementById('keyInput').focus();
+}
+function saveKey() {
+  const v = document.getElementById('keyInput').value.trim();
+  if (!v.startsWith('sk-')) { toast('That doesn\'t look like an Anthropic key','error'); return; }
+  store.apiKey = v;
+  store.rememberKey = document.getElementById('keyRemember').checked;
+  saveStore();
+  refreshKeyBtn();
+  closeModal('modal-key');
+  toast('API key saved');
+}
+function refreshKeyBtn() {
+  const b = document.getElementById('keyBtn');
+  if (store.apiKey) { b.textContent='✓ Key set'; b.classList.add('ok'); }
+  else { b.textContent='🔑 Set Key'; b.classList.remove('ok'); }
+}
+function openSettings() {
+  document.getElementById('set-team').value = store.settings.teamName;
+  document.getElementById('set-age').value = store.settings.defaultAge;
+  document.getElementById('set-season').value = store.settings.season;
+  openModal('modal-settings');
+}
+function saveSettings() {
+  store.settings.teamName = document.getElementById('set-team').value.trim() || 'My Team';
+  store.settings.defaultAge = document.getElementById('set-age').value;
+  store.settings.season = document.getElementById('set-season').value.trim() || '';
+  saveStore();
+  refreshHeader();
+  closeModal('modal-settings');
+  toast('Settings saved');
+}
+function refreshHeader() {
+  const t = document.getElementById('header-team');
+  t.textContent = store.settings.teamName + (store.settings.season ? ' · '+store.settings.season : '');
+  document.getElementById('dash-sub').textContent = store.settings.season ? `${store.settings.teamName} — ${store.settings.season}` : store.settings.teamName;
+}
+
+// ═══════════════════════════════════════════════════════════
+// EXPORT / IMPORT / RESET
+// ═══════════════════════════════════════════════════════════
+function exportData() {
+  const json = JSON.stringify(store, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `softball-coach-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  toast('Exported');
+}
+function importData(file) {
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!d.players || !d.games) throw new Error('Invalid file');
+      store = {...store, ...d};
+      saveStore();
+      renderAll();
+      toast('Imported successfully');
+      closeModal('modal-settings');
+    } catch(e) { toast('Import failed: '+e.message, 'error'); }
+  };
+  r.readAsText(file);
+}
+function resetAll() {
+  if (!confirm('Delete ALL data — players, games, plans, chats, library? This cannot be undone.')) return;
+  store = {
+    apiKey: store.apiKey, rememberKey: store.rememberKey,
+    settings: { teamName: 'My Team', defaultAge: '10U', season: 'Spring 2026' },
+    players: [], games: [], plans: [], research: [], threads: [], activeThreadId: null,
+  };
+  saveStore();
+  renderAll();
+  toast('All data reset','warn');
+  closeModal('modal-settings');
+}
+
+// ═══════════════════════════════════════════════════════════
+// CLAUDE API — streaming
+// ═══════════════════════════════════════════════════════════
+async function streamClaude({system, messages, onText, onDone, onError, max_tokens=2000}) {
+  if (!store.apiKey) { openKeyModal(); return; }
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': store.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens, system, messages, stream: true
+      })
+    });
+    if (!res.ok) {
+      const e = await res.json().catch(()=>({}));
+      throw new Error(e.error?.message || 'API error '+res.status);
+    }
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    let full = '';
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, {stream:true});
+      const lines = buf.split('\n');
+      buf = lines.pop() || '';
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (!data || data === '[DONE]') continue;
+        try {
+          const ev = JSON.parse(data);
+          if (ev.type === 'content_block_delta' && ev.delta?.text) {
+            full += ev.delta.text;
+            onText && onText(ev.delta.text, full);
+          }
+        } catch(e) {}
+      }
+    }
+    onDone && onDone(full);
+    return full;
+  } catch(err) {
+    onError && onError(err);
+    return null;
+  }
+}
+
+function md(text) {
+  try { return marked.parse(text || ''); } catch(e) { return text; }
+}
+
+// ═══════════════════════════════════════════════════════════
+// PRACTICE PLANNER
+// ═══════════════════════════════════════════════════════════
+let _ppContent = '', _ppMeta = {};
+async function genPractice() {
+  if (!store.apiKey) { openKeyModal(); return; }
+  const age = document.getElementById('pp-age').value;
+  const dur = document.getElementById('pp-dur').value;
+  const players = document.getElementById('pp-players').value;
+  const focus = document.getElementById('pp-focus').value;
+  const notes = document.getElementById('pp-notes').value.trim();
+  const card = document.getElementById('pp-out-card');
+  const out = document.getElementById('pp-out');
+  const btn = document.getElementById('pp-btn');
+  card.style.display = 'block';
+  btn.disabled = true; btn.textContent = '⏳ Generating...';
+  out.innerHTML = '<span class="cursor"></span>';
+  document.getElementById('pp-out-title').textContent = `${age} · ${focus} · ${dur}`;
+  _ppMeta = {age, dur, players, focus, notes};
+
+  const sys = `You are an experienced travel softball coach specializing in youth athlete development. You write structured, executable practice plans.
+Format: Use markdown headings, time blocks, and bullet points. For each station/drill include: time allocation, equipment needed, 1-2 specific coaching cues, and brief focus statement.
+Be specific — name real drills (Tee work, Soft toss, Front toss, Live BP, 4-corners, etc.), give exact rep counts and timing.
+Open with a brief overview, then warmup, skill blocks, situational/team segment, cool-down/team talk.`;
+
+  const prompt = `Create a ${dur} practice plan for a ${age} travel softball team with ${players} players.
+Focus: ${focus}.${notes ? '\n\nContext: '+notes : ''}
+Use markdown formatting with clear time blocks. End with 2-3 "key takeaways" coaches should reinforce.`;
+
+  await streamClaude({
+    system: sys,
+    messages: [{role:'user', content: prompt}],
+    onText: (_, full) => { out.innerHTML = md(full) + '<span class="cursor"></span>'; },
+    onDone: (full) => { _ppContent = full; out.innerHTML = md(full); btn.disabled=false; btn.textContent='⚡ Generate plan'; toast('Plan ready — save it below'); },
+    onError: (e) => { out.innerHTML = '⚠ '+e.message; out.className='output error'; btn.disabled=false; btn.textContent='⚡ Generate plan'; }
+  });
+}
+
+function savePlan() {
+  if (!_ppContent) { toast('Generate a plan first','warn'); return; }
+  const plan = {
+    id: uid(), title: `${_ppMeta.age} · ${_ppMeta.focus}`,
+    content: _ppContent, ...(_ppMeta), created: Date.now()
+  };
+  store.plans.unshift(plan);
+  saveStore();
+  renderPracticeLibrary();
+  renderDashboard();
+  toast('Plan saved to library');
+}
+function copyPlan() {
+  if (!_ppContent) return;
+  navigator.clipboard.writeText(_ppContent).then(() => toast('Copied to clipboard'));
+}
+function printPlan() {
+  if (!_ppContent) return;
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>Practice plan</title><style>body{font-family:sans-serif;max-width:720px;margin:30px auto;padding:20px;line-height:1.6}h1,h2,h3{color:#0f1f3d}h3{color:#c0392b}</style></head><body>${md(_ppContent)}</body></html>`);
+  w.document.close(); w.print();
+}
+function viewPlan(id) {
+  const p = store.plans.find(x=>x.id===id);
+  if (!p) return;
+  document.getElementById('modal-view-title').textContent = p.title;
+  document.getElementById('modal-view-meta').textContent = `${p.dur} · ${p.players} players · ${new Date(p.created).toLocaleDateString()}`;
+  document.getElementById('modal-view-body').innerHTML = md(p.content);
+  openModal('modal-view');
+}
+function deletePlan(id, e) {
+  e?.stopPropagation();
+  if (!confirm('Delete this plan?')) return;
+  store.plans = store.plans.filter(p=>p.id!==id);
+  saveStore(); renderPracticeLibrary(); renderDashboard();
+  toast('Plan deleted','warn');
+}
+function renderPracticeLibrary() {
+  const grid = document.getElementById('pp-library');
+  document.getElementById('pp-count').textContent = store.plans.length;
+  if (!store.plans.length) { grid.innerHTML = '<div class="empty" style="grid-column:1/-1">No saved plans yet — generate one above.</div>'; return; }
+  grid.innerHTML = store.plans.map(p => `
+    <div class="lib-item" onclick="viewPlan('${p.id}')">
+      <div class="lib-title">${esc(p.title)}</div>
+      <div class="lib-meta">${esc(p.dur)} · ${new Date(p.created).toLocaleDateString()}</div>
+      <div class="lib-preview">${esc(p.content.slice(0,180))}...</div>
+      <div class="lib-actions">
+        <button class="icon-btn btn-sm" onclick="event.stopPropagation();viewPlan('${p.id}')">View</button>
+        <button class="icon-btn btn-sm btn-danger" onclick="deletePlan('${p.id}',event)">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// COACH AI CHAT
+// ═══════════════════════════════════════════════════════════
+const COACH_SYS = `You are a knowledgeable travel softball coach and player development expert with deep experience in youth athletics.
+You give practical, specific, actionable advice. You understand: pitching mechanics (windmill delivery, drop ball, change-up grips), hitting mechanics (load, separation, contact), fielding fundamentals, baserunning strategy, catching, game situations, parent dynamics, mental game, and youth athlete psychology.
+Format with markdown — headings, bullets, numbered steps when appropriate. When asked about a skill, include drills and coaching cues. Keep responses focused — depth over breadth.`;
+
+function newThread() {
+  const t = { id: uid(), title: 'New chat', messages: [], created: Date.now() };
+  store.threads.unshift(t);
+  store.activeThreadId = t.id;
+  saveStore();
+  renderThreads();
+  renderActiveThread();
+  document.getElementById('chat-input').focus();
+}
+function selectThread(id) {
+  store.activeThreadId = id;
+  saveStore();
+  renderThreads();
+  renderActiveThread();
+}
+function deleteThread(id, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this conversation?')) return;
+  store.threads = store.threads.filter(t=>t.id!==id);
+  if (store.activeThreadId === id) store.activeThreadId = store.threads[0]?.id || null;
+  saveStore();
+  renderThreads();
+  renderActiveThread();
+}
+function renderThreads() {
+  const c = document.getElementById('thread-list');
+  if (!store.threads.length) { c.innerHTML = '<div style="color:var(--gray);font-size:12px;padding:8px;text-align:center">No chats yet</div>'; return; }
+  c.innerHTML = store.threads.map(t => `
+    <div class="chat-thread ${t.id===store.activeThreadId?'active':''}" onclick="selectThread('${t.id}')">
+      <span class="ttitle">${esc(t.title)}</span>
+      <button class="del" onclick="deleteThread('${t.id}',event)" title="Delete">×</button>
+    </div>`).join('');
+}
+function renderActiveThread() {
+  const c = document.getElementById('chat-msgs');
+  const t = store.threads.find(x=>x.id===store.activeThreadId);
+  if (!t) { c.innerHTML = '<div class="msg assistant">Hi Coach! Click <strong>+ New chat</strong> to start a conversation. Ask me about mechanics, drills, game strategy, player development — anything.</div>'; return; }
+  if (!t.messages.length) { c.innerHTML = '<div class="msg assistant">What can I help you with, Coach?</div>'; return; }
+  c.innerHTML = t.messages.map(m => `<div class="msg ${m.role}">${m.role==='assistant' ? md(m.content) : esc(m.content)}</div>`).join('');
+  c.scrollTop = c.scrollHeight;
+}
+async function sendChat() {
+  if (!store.apiKey) { openKeyModal(); return; }
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  let t = store.threads.find(x=>x.id===store.activeThreadId);
+  if (!t) { newThread(); t = store.threads[0]; }
+  input.value = '';
+  document.getElementById('chat-btn').disabled = true;
+
+  t.messages.push({role:'user', content: text});
+  if (t.title === 'New chat') { t.title = text.slice(0,40) + (text.length>40?'...':''); renderThreads(); }
+  renderActiveThread();
+
+  const c = document.getElementById('chat-msgs');
+  const ph = document.createElement('div');
+  ph.className = 'msg assistant';
+  ph.innerHTML = '<span class="cursor"></span>';
+  c.appendChild(ph);
+  c.scrollTop = c.scrollHeight;
+
+  await streamClaude({
+    system: COACH_SYS,
+    messages: t.messages.map(m=>({role:m.role,content:m.content})),
+    max_tokens: 1500,
+    onText: (_, full) => { ph.innerHTML = md(full) + '<span class="cursor"></span>'; c.scrollTop = c.scrollHeight; },
+    onDone: (full) => {
+      ph.innerHTML = md(full);
+      t.messages.push({role:'assistant', content: full});
+      saveStore();
+      document.getElementById('chat-btn').disabled = false;
+      input.focus();
+    },
+    onError: (e) => {
+      ph.innerHTML = '⚠ '+e.message;
+      document.getElementById('chat-btn').disabled = false;
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// SEASON / GAMES
+// ═══════════════════════════════════════════════════════════
+function addGame() {
+  const opp = document.getElementById('g-opp').value.trim();
+  if (!opp) { toast('Enter an opponent','warn'); return; }
+  const us = parseInt(document.getElementById('g-us').value) || 0;
+  const them = parseInt(document.getElementById('g-them').value) || 0;
+  let res = document.getElementById('g-res').value;
+  if (us > them) res = 'W'; else if (us < them) res = 'L'; else if (us===them && (us||them)) res = 'T';
+
+  const g = {
+    id: uid(),
+    date: document.getElementById('g-date').value || new Date().toISOString().slice(0,10),
+    opp, loc: document.getElementById('g-loc').value,
+    type: document.getElementById('g-type').value,
+    res, us, them,
+    notes: document.getElementById('g-notes').value.trim(),
+    stats: {}
+  };
+  store.games.unshift(g);
+  saveStore();
+  ['g-opp','g-us','g-them','g-notes'].forEach(id => document.getElementById(id).value='');
+  renderGames();
+  renderDashboard();
+  drawChart();
+  toast('Game added — click on it to log player stats');
+}
+function deleteGame(id, e) {
+  e?.stopPropagation();
+  if (!confirm('Delete this game?')) return;
+  store.games = store.games.filter(g=>g.id!==id);
+  saveStore();
+  renderGames(); renderDashboard(); drawChart(); renderRoster();
+  toast('Game deleted','warn');
+}
+function renderGames() {
+  const list = document.getElementById('game-list');
+  document.getElementById('game-count').textContent = store.games.length;
+  let w=0,l=0,t=0,rs=0,ra=0;
+  for (const g of store.games) { if(g.res==='W')w++; else if(g.res==='L')l++; else if(g.res==='T')t++; rs+=g.us||0; ra+=g.them||0; }
+  document.getElementById('s-w').textContent = w;
+  document.getElementById('s-l').textContent = l;
+  document.getElementById('s-t').textContent = t;
+  document.getElementById('s-rs').textContent = rs;
+  document.getElementById('s-ra').textContent = ra;
+
+  // team avg
+  let tab=0,tH=0;
+  for (const g of store.games) for (const pid in g.stats) { tab+=g.stats[pid].ab||0; tH+=g.stats[pid].h||0; }
+  document.getElementById('s-avg').textContent = tab ? (tH/tab).toFixed(3).replace(/^0\./,'.') : '.000';
+
+  if (!store.games.length) { list.innerHTML = '<div class="empty">No games logged yet.</div>'; return; }
+  list.innerHTML = store.games.map(g => `
+    <div class="game-item" onclick="openGameStats('${g.id}')">
+      <span class="badge ${g.res.toLowerCase()}">${g.res}</span>
+      <span><strong>${esc(g.opp)}</strong> · <span class="game-meta">${esc(g.type)} · ${esc(g.loc)}${g.notes?' · '+esc(g.notes):''}</span></span>
+      <span class="game-meta">${g.date}</span>
+      <span class="game-score">${g.us}–${g.them}</span>
+      <button class="icon-action" onclick="deleteGame('${g.id}',event)" title="Delete">×</button>
+    </div>`).join('');
+}
+
+let _editingGameId = null;
+function openGameStats(id) {
+  const g = store.games.find(x=>x.id===id);
+  if (!g) return;
+  _editingGameId = id;
+  if (!store.players.length) { toast('Add players to roster first','warn'); return; }
+  document.getElementById('modal-game-title').textContent = `${g.opp} · ${g.date}`;
+  const body = document.getElementById('modal-game-body');
+  body.innerHTML = `<div class="table-wrap"><table class="data"><thead>
+    <tr><th>#</th><th>Player</th><th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>R</th><th>BB</th><th>K</th><th>SB</th></tr>
+  </thead><tbody>${
+    store.players.map(p => {
+      const s = g.stats[p.id] || {};
+      return `<tr data-pid="${p.id}">
+        <td>${esc(p.jersey)}</td><td>${esc(p.name)}</td>
+        ${['ab','h','d','t','hr','rbi','r','bb','k','sb'].map(k =>
+          `<td><input type="number" min="0" data-stat="${k}" value="${s[k]||''}" style="width:46px;padding:4px 6px;font-size:12px;text-align:center"></td>`
+        ).join('')}
+      </tr>`;
+    }).join('')
+  }</tbody></table></div>`;
+  openModal('modal-game');
+}
+function saveGameStats() {
+  const g = store.games.find(x=>x.id===_editingGameId);
+  if (!g) return;
+  document.querySelectorAll('#modal-game-body tr[data-pid]').forEach(tr => {
+    const pid = tr.dataset.pid;
+    const s = {};
+    let any = false;
+    tr.querySelectorAll('input[data-stat]').forEach(i => {
+      const v = parseInt(i.value); if (v && !isNaN(v)) { s[i.dataset.stat] = v; any = true; }
+    });
+    if (any) g.stats[pid] = s; else delete g.stats[pid];
+  });
+  saveStore();
+  closeModal('modal-game');
+  renderGames(); renderRoster();
+  toast('Stats saved');
+}
+
+// ═══════════════════════════════════════════════════════════
+// ROSTER
+// ═══════════════════════════════════════════════════════════
+function addPlayer() {
+  const name = document.getElementById('p-name').value.trim();
+  const jersey = document.getElementById('p-jersey').value.trim();
+  if (!name) { toast('Enter a name','warn'); return; }
+  store.players.push({
+    id: uid(), name, jersey,
+    pos: document.getElementById('p-pos').value,
+    bats: document.getElementById('p-bats').value,
+    throws: document.getElementById('p-throws').value,
+    notes: ''
+  });
+  saveStore();
+  ['p-name','p-jersey'].forEach(id => document.getElementById(id).value='');
+  renderRoster();
+  renderDashboard();
+  toast('Player added');
+}
+function calcStats(playerId) {
+  let ab=0,h=0,d=0,t=0,hr=0,rbi=0,r=0,bb=0,k=0,sb=0,g=0;
+  for (const game of store.games) {
+    const s = game.stats[playerId];
+    if (!s) continue;
+    g++; ab+=s.ab||0; h+=s.h||0; d+=s.d||0; t+=s.t||0; hr+=s.hr||0;
+    rbi+=s.rbi||0; r+=s.r||0; bb+=s.bb||0; k+=s.k||0; sb+=s.sb||0;
+  }
+  const singles = h - d - t - hr;
+  const avg = ab ? h/ab : 0;
+  const obp = (ab+bb) ? (h+bb)/(ab+bb) : 0;
+  const slg = ab ? (singles + 2*d + 3*t + 4*hr)/ab : 0;
+  const ops = obp + slg;
+  return {g,ab,h,d,t,hr,rbi,r,bb,k,sb,avg,obp,slg,ops};
+}
+const fmt = n => n.toFixed(3).replace(/^0\./,'.');
+
+function renderRoster() {
+  const grid = document.getElementById('roster-grid');
+  document.getElementById('p-count').textContent = store.players.length;
+  if (!store.players.length) { grid.innerHTML = '<div class="empty" style="grid-column:1/-1">No players yet — add one above.</div>'; }
+  else {
+    grid.innerHTML = store.players.map(p => {
+      const s = calcStats(p.id);
+      return `<div class="player-card" onclick="openPlayerModal('${p.id}')">
+        <div class="player-head">
+          <div class="jersey">${esc(p.jersey||'#')}</div>
+          <div class="player-info">
+            <div class="player-name">${esc(p.name)}</div>
+            <div class="player-pos">${esc(p.pos)} · B/T: ${esc(p.bats)}/${esc(p.throws)}</div>
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-cell"><span class="v">${s.g}</span><span class="k">G</span></div>
+          <div class="stat-cell"><span class="v">${fmt(s.avg)}</span><span class="k">AVG</span></div>
+          <div class="stat-cell"><span class="v">${fmt(s.obp)}</span><span class="k">OBP</span></div>
+          <div class="stat-cell"><span class="v">${fmt(s.ops)}</span><span class="k">OPS</span></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  // table
+  const tb = document.getElementById('stats-body');
+  if (!store.players.length) { tb.innerHTML = '<tr><td colspan="18" style="text-align:center;color:var(--gray);padding:30px">No players yet</td></tr>'; return; }
+  tb.innerHTML = store.players.map(p => {
+    const s = calcStats(p.id);
+    return `<tr><td class="num">${esc(p.jersey)}</td><td>${esc(p.name)}</td><td>${esc(p.pos)}</td>
+      <td class="num">${s.g}</td><td class="num">${s.ab}</td><td class="num">${s.h}</td>
+      <td class="num">${s.d}</td><td class="num">${s.t}</td><td class="num">${s.hr}</td>
+      <td class="num">${s.rbi}</td><td class="num">${s.r}</td><td class="num">${s.bb}</td>
+      <td class="num">${s.k}</td><td class="num">${s.sb}</td>
+      <td class="num">${fmt(s.avg)}</td><td class="num">${fmt(s.obp)}</td>
+      <td class="num">${fmt(s.slg)}</td><td class="num">${fmt(s.ops)}</td></tr>`;
+  }).join('');
+}
+
+let _editingPlayerId = null;
+function openPlayerModal(id) {
+  const p = store.players.find(x=>x.id===id);
+  if (!p) return;
+  _editingPlayerId = id;
+  const s = calcStats(id);
+  document.getElementById('modal-player-title').textContent = `#${p.jersey} ${p.name}`;
+  document.getElementById('modal-player-meta').textContent = `${p.pos} · Bats ${p.bats} · Throws ${p.throws}`;
+  document.getElementById('modal-player-body').innerHTML = `
+    <div class="stat-row" style="grid-template-columns:repeat(6,1fr);margin-bottom:14px">
+      <div class="stat-cell"><span class="v">${s.g}</span><span class="k">G</span></div>
+      <div class="stat-cell"><span class="v">${s.ab}</span><span class="k">AB</span></div>
+      <div class="stat-cell"><span class="v">${s.h}</span><span class="k">H</span></div>
+      <div class="stat-cell"><span class="v">${s.rbi}</span><span class="k">RBI</span></div>
+      <div class="stat-cell"><span class="v">${fmt(s.avg)}</span><span class="k">AVG</span></div>
+      <div class="stat-cell"><span class="v">${fmt(s.ops)}</span><span class="k">OPS</span></div>
+    </div>
+    <label>Development notes</label>
+    <textarea id="player-notes" rows="6" placeholder="Mechanics work, mental game, season goals...">${esc(p.notes||'')}</textarea>`;
+  openModal('modal-player');
+}
+function saveplayerNotes() {
+  const p = store.players.find(x=>x.id===_editingPlayerId);
+  if (!p) return;
+  p.notes = document.getElementById('player-notes').value;
+  saveStore();
+  closeModal('modal-player');
+  toast('Notes saved');
+}
+function deletePlayer() {
+  if (!confirm('Delete this player and all their stats?')) return;
+  store.players = store.players.filter(p=>p.id!==_editingPlayerId);
+  // remove from game stats too
+  for (const g of store.games) delete g.stats[_editingPlayerId];
+  saveStore();
+  closeModal('modal-player');
+  renderRoster(); renderDashboard();
+  toast('Player deleted','warn');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SKILL RESEARCH / LIBRARY
+// ═══════════════════════════════════════════════════════════
+let _skContent = '', _skMeta = {};
+async function researchSkill() {
+  if (!store.apiKey) { openKeyModal(); return; }
+  const topic = document.getElementById('sk-topic').value.trim();
+  if (!topic) { toast('Enter a topic','warn'); return; }
+  const age = document.getElementById('sk-age').value;
+  const level = document.getElementById('sk-level').value.toLowerCase();
+  const cat = document.getElementById('sk-cat').value;
+  const card = document.getElementById('sk-out-card');
+  const out = document.getElementById('sk-out');
+  const btn = document.getElementById('sk-btn');
+  card.style.display = 'block';
+  btn.disabled = true; btn.textContent = '⏳ Researching...';
+  out.innerHTML = '<span class="cursor"></span>';
+  document.getElementById('sk-out-title').textContent = `${topic}`;
+  _skMeta = {topic, age, level, category: cat};
+
+  const sys = `You are a softball skill development expert. Provide thorough, structured breakdowns.
+Format with these markdown sections: ## Overview, ## Key mechanics, ## Progressions (Beginner → Intermediate → Advanced with specific drills for each), ## Common errors & fixes, ## Coaching cues, ## Practice integration.
+Be specific with drill names, rep counts, and equipment. Tailor difficulty to the age and level given.`;
+
+  await streamClaude({
+    system: sys,
+    max_tokens: 2500,
+    messages: [{role:'user', content: `Research topic: ${topic}\nAge: ${age}, Level: ${level}, Category: ${cat}\nProvide a complete coaching breakdown.`}],
+    onText: (_, full) => { out.innerHTML = md(full) + '<span class="cursor"></span>'; },
+    onDone: (full) => { _skContent = full; out.innerHTML = md(full); btn.disabled=false; btn.textContent='🔍 Research'; toast('Research ready — save it to library'); },
+    onError: (e) => { out.innerHTML='⚠ '+e.message; out.className='output error'; btn.disabled=false; btn.textContent='🔍 Research'; }
+  });
+}
+
+function saveResearch() {
+  if (!_skContent) return;
+  store.research.unshift({ id: uid(), content: _skContent, ...(_skMeta), created: Date.now() });
+  saveStore();
+  renderLibrary();
+  toast('Saved to library');
+}
+function viewResearch(id) {
+  const r = store.research.find(x=>x.id===id);
+  if (!r) return;
+  document.getElementById('modal-view-title').textContent = r.topic;
+  document.getElementById('modal-view-meta').textContent = `${r.category} · ${r.age} · ${r.level} · ${new Date(r.created).toLocaleDateString()}`;
+  document.getElementById('modal-view-body').innerHTML = md(r.content);
+  openModal('modal-view');
+}
+function deleteResearch(id, e) {
+  e?.stopPropagation();
+  if (!confirm('Delete this entry?')) return;
+  store.research = store.research.filter(r=>r.id!==id);
+  saveStore(); renderLibrary();
+  toast('Deleted','warn');
+}
+function renderLibrary() {
+  const grid = document.getElementById('lib-grid');
+  const search = (document.getElementById('lib-search')?.value || '').toLowerCase();
+  const filter = document.getElementById('lib-filter')?.value || '';
+  let items = store.research;
+  if (filter) items = items.filter(r => r.category === filter);
+  if (search) items = items.filter(r => (r.topic+' '+r.content).toLowerCase().includes(search));
+  document.getElementById('lib-count').textContent = items.length;
+  if (!items.length) { grid.innerHTML = '<div class="empty" style="grid-column:1/-1">No saved research yet.</div>'; return; }
+  grid.innerHTML = items.map(r => `
+    <div class="lib-item" onclick="viewResearch('${r.id}')">
+      <div class="lib-title">${esc(r.topic)}</div>
+      <div class="lib-meta">${esc(r.category)} · ${esc(r.age)} · ${esc(r.level)}</div>
+      <div class="lib-preview">${esc(r.content.slice(0,180))}...</div>
+      <div class="lib-actions">
+        <button class="icon-btn btn-sm" onclick="event.stopPropagation();viewResearch('${r.id}')">View</button>
+        <button class="icon-btn btn-sm btn-danger" onclick="deleteResearch('${r.id}',event)">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function renderDashboard() {
+  const games = store.games;
+  let w=0,l=0,t=0,rs=0,ra=0;
+  for (const g of games) { if(g.res==='W')w++; else if(g.res==='L')l++; else if(g.res==='T')t++; rs+=g.us||0; ra+=g.them||0; }
+  document.getElementById('d-record').textContent = `${w}–${l}${t?'–'+t:''}`;
+  document.getElementById('d-record-sub').textContent = games.length ? `${games.length} games` : 'No games yet';
+  document.getElementById('d-winpct').textContent = games.length ? Math.round(w/games.length*100)+'%' : '—';
+  document.getElementById('d-winpct-sub').textContent = games.length ? `${w} of ${games.length}` : 'Add a game to start';
+
+  // streak (chronological)
+  const sorted = [...games].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  let streakCount = 0, streakKind = '';
+  if (sorted.length) {
+    const last = sorted[sorted.length-1].res;
+    streakKind = last;
+    for (let i = sorted.length-1; i >= 0; i--) {
+      if (sorted[i].res === last) streakCount++; else break;
+    }
+  }
+  document.getElementById('d-streak').textContent = streakCount ? `${streakKind}${streakCount}` : '—';
+  document.getElementById('d-streak-sub').textContent = streakCount ? (streakKind==='W'?'Heating up 🔥':streakKind==='L'?'Bounce back':'Tied up') : '—';
+
+  const diff = rs-ra;
+  document.getElementById('d-rundiff').textContent = games.length ? (diff>=0?'+':'')+diff : '—';
+  document.getElementById('d-rundiff-sub').textContent = games.length ? `${rs} scored / ${ra} allowed` : '—';
+
+  document.getElementById('d-roster').textContent = store.players.length;
+  document.getElementById('d-roster-sub').textContent = store.players.length ? store.players.map(p=>p.name.split(' ')[0]).slice(0,3).join(', ')+(store.players.length>3?`, +${store.players.length-3}`:'') : 'Add players in Roster';
+  document.getElementById('d-plans').textContent = store.plans.length;
+  document.getElementById('d-plans-sub').textContent = store.plans.length ? `Last: ${store.plans[0].title.slice(0,28)}` : 'None saved yet';
+
+  // recent games
+  const dg = document.getElementById('dash-games');
+  const recent = games.slice(0,5);
+  if (!recent.length) { dg.innerHTML = '<div class="empty">No games yet.</div>'; }
+  else {
+    dg.innerHTML = recent.map(g => `
+      <div class="game-item" onclick="goTab('season')">
+        <span class="badge ${g.res.toLowerCase()}">${g.res}</span>
+        <span><strong>${esc(g.opp)}</strong> · <span class="game-meta">${esc(g.loc)}${g.notes?' · '+esc(g.notes):''}</span></span>
+        <span class="game-meta">${g.date}</span>
+        <span class="game-score">${g.us}–${g.them}</span>
+        <span></span>
+      </div>`).join('');
+  }
+  // recent plan
+  const dp = document.getElementById('dash-plan');
+  if (!store.plans.length) { dp.innerHTML = '<div class="empty">No saved plans yet.</div>'; }
+  else {
+    const p = store.plans[0];
+    dp.innerHTML = `<div class="lib-item" style="cursor:pointer" onclick="viewPlan('${p.id}')">
+      <div class="lib-title">${esc(p.title)}</div>
+      <div class="lib-meta">${esc(p.dur||'')} · ${new Date(p.created).toLocaleDateString()}</div>
+      <div class="lib-preview">${esc(p.content.slice(0,250))}...</div>
+    </div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════════════════
+let _chart = null;
+function drawChart() {
+  const ctx = document.getElementById('chart-record');
+  if (!ctx) return;
+  if (_chart) { _chart.destroy(); _chart = null; }
+  const sorted = [...store.games].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if (!sorted.length) {
+    ctx.getContext('2d').clearRect(0,0,ctx.width,ctx.height);
+    return;
+  }
+  const labels = []; const wins=[]; const losses=[]; const diff=[];
+  let w=0,l=0;
+  sorted.forEach((g,i) => {
+    if (g.res==='W') w++; else if (g.res==='L') l++;
+    labels.push(g.date.slice(5));
+    wins.push(w); losses.push(l);
+    diff.push((g.us||0)-(g.them||0));
+  });
+  _chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {label:'Wins', data:wins, borderColor:'#27ae60', backgroundColor:'rgba(39,174,96,.1)', tension:.3, fill:true},
+        {label:'Losses', data:losses, borderColor:'#e74c3c', backgroundColor:'rgba(231,76,60,.1)', tension:.3, fill:true},
+        {label:'Run diff (game)', data:diff, borderColor:'#3498db', borderDash:[4,4], tension:.2, type:'line', yAxisID:'y2'}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#e8edf5', font:{size:12}}}},
+      scales:{
+        x:{ ticks:{color:'#8892a4',font:{size:11}}, grid:{color:'rgba(255,255,255,.04)'}},
+        y:{ ticks:{color:'#8892a4',font:{size:11}}, grid:{color:'rgba(255,255,255,.04)'}, beginAtZero:true},
+        y2:{ position:'right', ticks:{color:'#3498db',font:{size:11}}, grid:{display:false}}
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderAll() {
+  refreshKeyBtn();
+  refreshHeader();
+  renderDashboard();
+  renderGames();
+  renderRoster();
+  renderPracticeLibrary();
+  renderThreads();
+  renderActiveThread();
+  renderLibrary();
+  drawChart();
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+loadStore();
+document.getElementById('g-date').value = new Date().toISOString().slice(0,10);
+renderAll();
+if (_memoryOnly) toast('Browser storage unavailable — using session memory','warn');
+</script>
+</body>
+</html>
