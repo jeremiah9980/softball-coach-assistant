@@ -1243,9 +1243,9 @@ async function callAI(prompt, outputId) {
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 800,
         system: 'You are a fastpitch softball coach assistant for the Cortinas 10U team based in Georgetown, TX. Player #21 is Kassidy. Keep responses focused, practical, and formatted for a coach or parent audience. When writing Band posts, keep them warm, energetic, and brief (under 250 words). When analyzing stats, be specific and actionable.',
         messages: [{ role: 'user', content: prompt }]
@@ -1412,9 +1412,9 @@ function aiCompose() {
   out.value = '⟳ Generating...';
   fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 600,
       system: 'You are a fastpitch softball coach assistant for Cortinas 10U in Georgetown, TX. Coach Cargill / Kassidy #21. Write warm, practical, emoji-appropriate messages for parents and players.',
       messages: [{ role: 'user', content: prompts[type] || prompts.custom }]
