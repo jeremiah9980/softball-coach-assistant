@@ -1,0 +1,602 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#c0392b;--red2:#e74c3c;--red3:#ff6b5b;
+  --bg:#0a1628;--bg2:#0f1f3d;--bg3:#162848;--bg4:#1e3560;
+  --white:#f8f9fa;--text:#e8edf5;--gray:#8892a4;--gray2:#5a6577;
+  --green:#27ae60;--amber:#e67e22;--blue:#3498db;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--color-background-primary);color:var(--color-text-primary);line-height:1.6}
+
+.guide-header{background:var(--bg);border-radius:var(--border-radius-lg);padding:2rem 2rem 1.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.guide-header::before{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),var(--red2),var(--red3))}
+.guide-header h1{color:#fff;font-size:22px;font-weight:500;margin-bottom:4px;display:flex;align-items:center;gap:10px}
+.guide-header p{color:var(--gray);font-size:13px;margin-bottom:1rem}
+.badge-row{display:flex;gap:8px;flex-wrap:wrap}
+.badge{background:rgba(255,255,255,.08);border:0.5px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.badge.red{background:rgba(192,57,43,.25);border-color:rgba(231,76,60,.4);color:#ff6b5b}
+
+.toc{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:1.5rem}
+.toc-btn{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:3px;text-align:left}
+.toc-btn:hover{border-color:var(--color-border-secondary);background:var(--color-background-primary)}
+.toc-btn.active{border-color:var(--red2);border-width:1.5px}
+.toc-icon{font-size:16px}
+.toc-label{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.toc-sub{font-size:11px;color:var(--color-text-secondary)}
+
+.section{display:none;animation:fadeIn .2s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:0.5px solid var(--color-border-tertiary)}
+.section-icon{width:40px;height:40px;border-radius:var(--border-radius-md);background:var(--bg2);border:0.5px solid var(--bg4);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.section-title{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.section-desc{font-size:13px;color:var(--color-text-secondary);margin-top:2px}
+
+.mockup{background:var(--bg);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:1rem;border:0.5px solid rgba(255,255,255,.06)}
+.mockup-bar{background:var(--bg2);border-bottom:0.5px solid var(--bg4);padding:8px 14px;display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%}
+.mockup-url{background:var(--bg3);border-radius:4px;padding:3px 10px;font-size:10px;color:var(--gray);flex:1;margin-left:4px;max-width:280px}
+.mockup-nav{background:var(--bg2);border-bottom:0.5px solid var(--bg3);display:flex;overflow-x:auto;scrollbar-width:none;padding:0 8px}
+.mockup-nav::-webkit-scrollbar{display:none}
+.m-tab{padding:9px 12px;font-size:11px;color:var(--gray);border-bottom:2px solid transparent;white-space:nowrap;font-weight:500}
+.m-tab.act{color:var(--white);border-bottom-color:var(--red2)}
+.mockup-body{padding:14px;min-height:180px}
+
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.stat-card{background:var(--bg2);border:0.5px solid var(--bg3);border-radius:8px;padding:10px;text-align:center}
+.stat-card .num{font-size:22px;font-weight:600;color:var(--white)}
+.stat-card .lbl{font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.stat-card.accent{border-color:var(--red);background:rgba(192,57,43,.08)}
+.stat-card.accent .num{color:var(--red3)}
+
+.game-row{display:flex;align-items:center;gap:8px;background:var(--bg2);border-radius:6px;padding:7px 10px;margin-bottom:6px;font-size:11px}
+.badge-w{background:rgba(39,174,96,.15);color:#27ae60;border:0.5px solid rgba(39,174,96,.4);padding:2px 7px;border-radius:3px;font-weight:700;font-size:10px}
+.badge-l{background:rgba(231,76,60,.15);color:var(--red3);border:0.5px solid rgba(231,76,60,.4);padding:2px 7px;border-radius:3px;font-weight:700;font-size:10px}
+.game-opp{font-weight:600;color:var(--white);flex:1}
+.game-score{color:var(--gray);font-size:10px}
+
+.plan-form{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.m-select,.m-input{background:var(--bg);border:0.5px solid var(--bg4);color:var(--text);padding:5px 8px;border-radius:5px;font-size:10px;width:100%;appearance:none}
+.m-btn{background:var(--red);color:#fff;border:none;padding:8px 14px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;margin-top:2px}
+.m-btn-ghost{background:transparent;border:0.5px solid var(--bg4);color:var(--gray);padding:6px 12px;border-radius:5px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.m-label{font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;font-weight:600}
+
+.output-box{background:var(--bg3);border:0.5px solid var(--bg4);border-radius:6px;padding:10px;font-size:10px;color:var(--text);line-height:1.6;margin-top:8px}
+.output-box strong{color:var(--white)}
+
+.chat-area{display:flex;flex-direction:column;gap:8px;padding:10px;background:var(--bg2);border-radius:8px;min-height:140px}
+.msg-user{align-self:flex-end;background:var(--red);color:#fff;padding:7px 11px;border-radius:10px 10px 2px 10px;font-size:10px;max-width:80%}
+.msg-ai{align-self:flex-start;background:var(--bg);border:0.5px solid var(--bg4);padding:7px 11px;border-radius:10px 10px 10px 2px;font-size:10px;max-width:85%;color:var(--text);line-height:1.6}
+
+.table-mock{width:100%;border-collapse:collapse;font-size:10px}
+.table-mock th{background:var(--bg3);color:var(--gray);padding:5px 7px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.4px;font-weight:600;border-bottom:0.5px solid var(--bg4)}
+.table-mock td{padding:5px 7px;border-bottom:0.5px solid var(--bg3);color:var(--text)}
+.table-mock tr:hover td{background:var(--bg2)}
+
+.player-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.player-card{background:var(--bg2);border:0.5px solid var(--bg3);border-radius:7px;padding:10px}
+.jersey{width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0}
+.player-name{font-weight:600;font-size:11px;color:var(--white)}
+.player-pos{font-size:9px;color:var(--gray)}
+
+.int-subnav{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;background:var(--bg2);border:0.5px solid var(--bg3);border-radius:6px;padding:6px}
+.int-tab{padding:4px 10px;border-radius:4px;font-size:10px;font-weight:500;color:var(--gray);cursor:pointer}
+.int-tab.act{background:var(--red);color:#fff}
+
+.platform-card{background:var(--bg);border:0.5px solid var(--bg4);border-radius:6px;padding:8px 10px;display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px}
+.plat-icon{width:28px;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.plat-name{font-weight:600;color:var(--white);font-size:11px}
+.plat-status{font-size:10px;color:var(--gray)}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+.ncs-card{background:var(--bg);border:0.5px solid var(--bg4);border-radius:6px;padding:8px 10px;margin-bottom:5px}
+.ncs-name{font-weight:600;font-size:11px;color:var(--white);margin-bottom:2px}
+.ncs-meta{font-size:10px;color:var(--gray)}
+
+.tourn-schedule{width:100%;border-collapse:collapse;font-size:10px;margin-top:8px}
+.tourn-schedule th{background:var(--bg3);color:var(--gray);padding:4px 7px;font-size:9px;text-transform:uppercase;letter-spacing:.4px;border-bottom:0.5px solid var(--bg4)}
+.tourn-schedule td{padding:5px 7px;border-bottom:0.5px solid var(--bg3);color:var(--text)}
+
+.fund-card{background:var(--bg2);border:0.5px solid var(--bg3);border-radius:7px;padding:10px;margin-bottom:8px}
+.fund-name{font-weight:600;font-size:12px;color:var(--white);margin-bottom:4px}
+.fund-meta{font-size:10px;color:var(--gray);margin-bottom:6px}
+.progress-bar{height:4px;background:var(--bg4);border-radius:2px}
+.progress-fill{height:100%;background:var(--green);border-radius:2px}
+
+.step-row{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;font-size:12px;color:var(--color-text-secondary)}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.step-text{flex:1;line-height:1.5}
+.step-text strong{color:var(--color-text-primary);font-weight:500}
+
+.tip-box{background:var(--color-background-info);border:0.5px solid var(--color-border-info);border-radius:var(--border-radius-md);padding:10px 12px;margin-top:10px;font-size:12px;color:var(--color-text-info);line-height:1.5}
+.tip-box i{font-size:14px;vertical-align:-2px;margin-right:5px}
+
+.shortcuts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.shortcut{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px 10px;font-size:12px;color:var(--color-text-secondary)}
+.shortcut strong{display:block;color:var(--color-text-primary);font-weight:500;margin-bottom:2px;font-size:12px}
+
+.export-btns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.export-btn{background:transparent;border:0.5px solid var(--bg4);color:var(--gray);padding:5px 10px;border-radius:5px;font-size:10px;display:inline-flex;align-items:center;gap:4px}
+</style>
+
+<h2 class="sr-only">DugoutOS Softball Coach Assistant — complete user guide with interactive UI previews for all 9 tabs</h2>
+
+<div class="guide-header">
+  <h1>⚾ DugoutOS — Coach Assistant</h1>
+  <p>Complete guide · 9 tabs · AI-powered · runs in your browser</p>
+  <div class="badge-row">
+    <span class="badge red">Requires Anthropic API key</span>
+    <span class="badge">No backend</span>
+    <span class="badge">localStorage</span>
+    <span class="badge">Claude Sonnet 4</span>
+  </div>
+</div>
+
+<div class="toc" id="toc">
+  <div class="toc-btn active" data-sec="start" onclick="show('start',this)"><span class="toc-icon">🚀</span><span class="toc-label">Getting started</span><span class="toc-sub">Setup & API key</span></div>
+  <div class="toc-btn" data-sec="dash" onclick="show('dash',this)"><span class="toc-icon">📊</span><span class="toc-label">Dashboard</span><span class="toc-sub">Season at a glance</span></div>
+  <div class="toc-btn" data-sec="practice" onclick="show('practice',this)"><span class="toc-icon">📋</span><span class="toc-label">Practice</span><span class="toc-sub">Dual AI plans</span></div>
+  <div class="toc-btn" data-sec="coach" onclick="show('coach',this)"><span class="toc-icon">💬</span><span class="toc-label">Coach AI</span><span class="toc-sub">Ask anything</span></div>
+  <div class="toc-btn" data-sec="season" onclick="show('season',this)"><span class="toc-icon">🏆</span><span class="toc-label">Season</span><span class="toc-sub">Games & stats</span></div>
+  <div class="toc-btn" data-sec="tournaments" onclick="show('tournaments',this)"><span class="toc-icon">🥇</span><span class="toc-label">Tournaments</span><span class="toc-sub">Itinerary + ICS</span></div>
+  <div class="toc-btn" data-sec="fund" onclick="show('fund',this)"><span class="toc-icon">💰</span><span class="toc-label">Fundraising</span><span class="toc-sub">Dual plans + PDF</span></div>
+  <div class="toc-btn" data-sec="roster" onclick="show('roster',this)"><span class="toc-icon">👥</span><span class="toc-label">Roster</span><span class="toc-sub">Players & stats</span></div>
+  <div class="toc-btn" data-sec="library" onclick="show('library',this)"><span class="toc-icon">📚</span><span class="toc-label">Library</span><span class="toc-sub">Drill research</span></div>
+  <div class="toc-btn" data-sec="integrations" onclick="show('integrations',this)"><span class="toc-icon">🔗</span><span class="toc-label">Integrations</span><span class="toc-sub">GC · Band · NCS</span></div>
+</div>
+
+<!-- ── GETTING STARTED ── -->
+<div class="section active" id="sec-start">
+  <div class="section-header">
+    <div class="section-icon">🚀</div>
+    <div><div class="section-title">Getting started</div><div class="section-desc">Set up your API key and team settings in under 2 minutes</div></div>
+  </div>
+
+  <div class="step-row"><div class="step-num">1</div><div class="step-text"><strong>Open the app</strong> — visit <code style="font-size:11px;background:var(--color-background-secondary);padding:2px 6px;border-radius:4px">jeremiah9980.github.io/softball-coach-assistant</code></div></div>
+  <div class="step-row"><div class="step-num">2</div><div class="step-text"><strong>Get an API key</strong> — go to <code style="font-size:11px;background:var(--color-background-secondary);padding:2px 6px;border-radius:4px">console.anthropic.com</code>, create a key starting with <code style="font-size:11px;background:var(--color-background-secondary);padding:2px 6px;border-radius:4px">sk-ant-</code></div></div>
+  <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>Click "🔑 Set Key"</strong> in the top-right header, paste your key, check "Remember in this browser"</div></div>
+  <div class="step-row"><div class="step-num">4</div><div class="step-text"><strong>Click "⚙ Settings"</strong> — enter your team name, age group (e.g. 10U), and season label. This auto-fills every AI prompt.</div></div>
+
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#ffbd2e"></div><div class="dot" style="background:#28c840"></div><div class="mockup-url">jeremiah9980.github.io/softball-coach-assistant</div></div>
+    <div style="background:var(--bg2);border-bottom:0.5px solid var(--bg3);padding:10px 14px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:13px;font-weight:600;color:#fff">⚾ Softball <span style="color:var(--red3)">Coach</span></span>
+      <span style="color:var(--gray);font-size:11px;border-left:0.5px solid var(--bg4);padding-left:10px">Cortinas 10U · Spring 2026</span>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <span style="background:transparent;border:0.5px solid var(--bg4);color:var(--gray);padding:5px 10px;border-radius:5px;font-size:10px">⚙ Settings</span>
+        <span style="background:transparent;border:0.5px solid var(--green);color:var(--green);padding:5px 10px;border-radius:5px;font-size:10px">✓ Key set</span>
+      </div>
+    </div>
+    <div style="padding:14px;background:var(--bg)">
+      <p style="color:var(--gray);font-size:11px;text-align:center;padding:20px">← Header shows your team name once settings are saved. Key button turns green when active.</p>
+    </div>
+  </div>
+
+  <div class="tip-box"><i class="ti ti-info-circle" aria-hidden="true"></i> All data is stored locally in your browser's localStorage — nothing is sent to any server except your AI prompts to Anthropic's API. Export a JSON backup anytime via Settings → Export JSON.</div>
+
+  <div style="margin-top:1rem">
+    <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:8px">Keyboard shortcuts</div>
+    <div class="shortcuts">
+      <div class="shortcut"><strong>Click any nav tab</strong>Switches to that section</div>
+      <div class="shortcut"><strong>Enter in chat input</strong>Sends message to Coach AI</div>
+      <div class="shortcut"><strong>Settings → Export JSON</strong>Full data backup</div>
+      <div class="shortcut"><strong>Settings → Import JSON</strong>Restore from backup</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DASHBOARD ── -->
+<div class="section" id="sec-dash">
+  <div class="section-header">
+    <div class="section-icon">📊</div>
+    <div><div class="section-title">Dashboard</div><div class="section-desc">Live season overview — auto-updates as you add games, players, and fundraisers</div></div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#ffbd2e"></div><div class="dot" style="background:#28c840"></div><div class="mockup-url">softball-coach-assistant · Dashboard</div></div>
+    <div class="mockup-nav"><span class="m-tab act">📊 Dashboard</span><span class="m-tab">📋 Practice</span><span class="m-tab">💬 Coach AI</span><span class="m-tab">🏆 Season</span><span class="m-tab">🥇 Tournaments</span><span class="m-tab">💰 Fundraising</span><span class="m-tab">👥 Roster</span><span class="m-tab">📚 Library</span><span class="m-tab">🔗 Integrations</span></div>
+    <div class="mockup-body">
+      <div class="stat-grid">
+        <div class="stat-card accent"><div class="num">8–3</div><div class="lbl">Record</div></div>
+        <div class="stat-card"><div class="num">73%</div><div class="lbl">Win %</div></div>
+        <div class="stat-card"><div class="num">3W</div><div class="lbl">Streak</div></div>
+        <div class="stat-card"><div class="num">+42</div><div class="lbl">Run diff</div></div>
+        <div class="stat-card"><div class="num">$840</div><div class="lbl">Raised</div></div>
+        <div class="stat-card"><div class="num">12</div><div class="lbl">Roster</div></div>
+      </div>
+      <div style="font-size:10px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Recent games</div>
+      <div class="game-row"><span class="badge-w">W</span><span class="game-opp">Vipers</span><span class="game-score">2026-05-18</span><span style="font-weight:600;color:var(--white);font-size:11px">9–2</span></div>
+      <div class="game-row"><span class="badge-w">W</span><span class="game-opp">Fireballs</span><span class="game-score">2026-05-11</span><span style="font-weight:600;color:var(--white);font-size:11px">7–4</span></div>
+      <div class="game-row"><span class="badge-l">L</span><span class="game-opp">Storm 10U</span><span class="game-score">2026-05-04</span><span style="font-weight:600;color:var(--white);font-size:11px">3–6</span></div>
+    </div>
+  </div>
+  <div class="step-row"><div class="step-num" style="background:var(--bg4);color:var(--gray);font-size:10px">→</div><div class="step-text">Tiles update live — add a game in Season, come back and the record tile changes immediately.</div></div>
+  <div class="step-row"><div class="step-num" style="background:var(--bg4);color:var(--gray);font-size:10px">→</div><div class="step-text">The bottom card always shows your most recent saved practice plan with a one-click View link.</div></div>
+</div>
+
+<!-- ── PRACTICE ── -->
+<div class="section" id="sec-practice">
+  <div class="section-header">
+    <div class="section-icon">📋</div>
+    <div><div class="section-title">Practice planner</div><div class="section-desc">AI generates two synchronized versions: a coach plan and a player prep doc with diagrams</div></div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#ffbd2e"></div><div class="dot" style="background:#28c840"></div><div class="mockup-url">softball-coach-assistant · Practice</div></div>
+    <div class="mockup-nav"><span class="m-tab">📊 Dashboard</span><span class="m-tab act">📋 Practice</span><span class="m-tab">💬 Coach AI</span><span class="m-tab">🏆 Season</span></div>
+    <div class="mockup-body">
+      <div style="font-size:10px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">New practice plan</div>
+      <div class="plan-form">
+        <div><div class="m-label">Age group</div><select class="m-select"><option>10U</option></select></div>
+        <div><div class="m-label">Duration</div><select class="m-select"><option>90 minutes</option></select></div>
+        <div><div class="m-label">Focus area</div><select class="m-select"><option>Hitting mechanics</option></select></div>
+        <div><div class="m-label">Players</div><select class="m-select"><option>9–12</option></select></div>
+      </div>
+      <div style="margin-bottom:8px"><div class="m-label">Assistant coaches</div><input class="m-input" value="Coach Mike, Coach Sarah"></div>
+      <button class="m-btn">⚡ Generate dual plan</button>
+      <div style="margin-top:10px;background:var(--bg2);border-radius:7px;overflow:hidden">
+        <div style="display:flex;border-bottom:0.5px solid var(--bg3)">
+          <span style="padding:7px 14px;font-size:10px;font-weight:600;background:var(--red);color:#fff;border-right:0.5px solid var(--bg3)">📋 Coach</span>
+          <span style="padding:7px 14px;font-size:10px;font-weight:500;color:var(--gray)">🧢 Player</span>
+          <div style="margin-left:auto;display:flex;gap:4px;padding:4px 8px">
+            <span class="export-btn">💾 Save</span>
+            <span class="export-btn">📋 Copy</span>
+            <span class="export-btn">🖨 Print</span>
+            <span class="export-btn">📄 PDF</span>
+          </div>
+        </div>
+        <div class="output-box" style="border:none;border-radius:0;background:var(--bg2)">
+          <strong>## Cortinas 10U — Hitting Mechanics · 90 min</strong><br>
+          <strong>### Block 1 (0–20 min): Soft toss warm-up</strong><br>
+          Coach Mike — Station A (L field line). 3 rounds of 10 reps, focus on hip rotation. Cue: "load the back hip before the hands move..."<br><br>
+          <strong>### Block 2 (20–45 min): Tee work</strong><br>
+          Coach Sarah — Stations B & C. Contact point drill...
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="step-row"><div class="step-num">1</div><div class="step-text"><strong>Fill in the 4 dropdowns</strong> — age, duration, focus, player count. Add assistant coach names to get specific station assignments.</div></div>
+  <div class="step-row"><div class="step-num">2</div><div class="step-text"><strong>Click "Generate dual plan"</strong> — streams the Coach version first, then auto-generates the Player prep doc with SVG field diagrams.</div></div>
+  <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>Toggle Coach / Player tabs</strong> — view and export each version separately. Player doc is age-appropriate language with visual drills.</div></div>
+  <div class="step-row"><div class="step-num">4</div><div class="step-text"><strong>Save to library</strong> — stored plans appear in the grid at the bottom. Click any to re-view or reprint.</div></div>
+  <div class="tip-box"><i class="ti ti-bulb" aria-hidden="true"></i> Use the "Additional context" field for things like "tournament Saturday — need a quick 60-min version" or "only 8 players, no second coach." The AI adapts the whole plan.</div>
+</div>
+
+<!-- ── COACH AI ── -->
+<div class="section" id="sec-coach">
+  <div class="section-header">
+    <div class="section-icon">💬</div>
+    <div><div class="section-title">Coach AI chat</div><div class="section-desc">Unlimited multi-thread coaching conversations — mechanics, drills, parent dynamics, strategy</div></div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#ffbd2e"></div><div class="dot" style="background:#28c840"></div><div class="mockup-url">softball-coach-assistant · Coach AI</div></div>
+    <div class="mockup-nav"><span class="m-tab">📊</span><span class="m-tab">📋</span><span class="m-tab act">💬 Coach AI</span><span class="m-tab">🏆</span></div>
+    <div class="mockup-body" style="display:grid;grid-template-columns:160px 1fr;gap:10px;padding:10px">
+      <div style="background:var(--bg2);border:0.5px solid var(--bg3);border-radius:7px;padding:8px;display:flex;flex-direction:column;gap:5px">
+        <div style="background:var(--red);color:#fff;border-radius:5px;padding:6px 8px;font-size:10px;font-weight:600">+ New chat</div>
+        <div style="background:var(--red);border-radius:5px;padding:6px 8px;font-size:10px;font-weight:500;color:#fff">Drop ball mechanics</div>
+        <div style="background:var(--bg);border:0.5px solid var(--bg4);border-radius:5px;padding:6px 8px;font-size:10px;color:var(--gray)">Parent meeting tips</div>
+        <div style="background:var(--bg);border:0.5px solid var(--bg4);border-radius:5px;padding:6px 8px;font-size:10px;color:var(--gray)">Bunting drills 10U</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0;background:var(--bg2);border:0.5px solid var(--bg3);border-radius:7px;overflow:hidden">
+        <div class="chat-area" style="flex:1">
+          <div class="msg-user">How do I teach the drop ball grip to a 10U pitcher?</div>
+          <div class="msg-ai"><strong style="color:#fff">Drop ball — 10U fundamentals</strong><br><br>Start with the 2-seam grip. Index and middle fingers sit across the narrow seams. Key coaching cue: <em>"Snap your wrist down like you're throwing a frisbee into the ground."</em><br><br>3-step progression: (1) stand-still snap drills at 10 ft, (2) full-arm circle at half-speed, (3) game-speed with target at knees...</div>
+        </div>
+        <div style="border-top:0.5px solid var(--bg3);padding:8px;display:flex;gap:6px;background:var(--bg2)">
+          <div style="flex:1;background:var(--bg);border:0.5px solid var(--bg4);border-radius:5px;padding:5px 8px;font-size:10px;color:var(--gray)">Ask a follow-up...</div>
+          <button class="m-btn" style="padding:5px 12px">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="step-row"><div class="step-num">1</div><div class="step-text"><strong>Click "+ New chat"</strong> in the sidebar to start a thread. The title auto-fills from your first message.</div></div>
+  <div class="step-row"><div class="step-num">2</div><div class="step-text"><strong>Ask anything coaching-related</strong> — mechanics, drills, situational play, mental game, parent communication. Full markdown responses.</div></div>
+  <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>Threads persist</strong> across sessions (saved in localStorage). Click any thread to continue the conversation where you left off.</div></div>
+  <div class="tip-box"><i class="ti ti-message-circle" aria-hidden="true"></i> Great starter questions: "What are the 3 most common hitting mistakes in 10U players?", "How do I run a parent pre-season meeting?", "Give me 5 drills for a player with slow hip rotation."</div>
+</div>
+
+<!-- ── SEASON ── -->
+<div class="section" id="sec-season">
+  <div class="section-header">
+    <div class="section-icon">🏆</div>
+    <div><div class="section-title">Season tracker</div><div class="section-desc">Log every game result, track team batting stats, and visualize your win/loss trend</div></div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#ffbd2e"></div><div class="dot" style="background:#28c840"></div><div class="mockup-url">softball-coach-assistant · Season</div></div>
+    <div class="mockup-nav"><span class="m-tab">📊</span><span class="m-tab">📋</span><span class="m-tab">💬</span><span class="m-tab act">🏆 Season</span></div>
+    <div class="mockup-body">
+      <div class="stat-grid" style="grid-template-columns:repeat(6,1fr)">
+        <div class="stat-card"><div class="num">8</div><div class="lbl">W</div></div>
+        <div class="stat-card"><div class="num">3</div><div class="lbl">L</div></div>
+        <div class="stat-card"><div class="num">0</div><div class="lbl">T</div></div>
+        <div class="stat-card"><div class="num">74</div><div class="lbl">RS</div></div>
+        <div class="stat-card"><div class="num">32</div><div class="lbl">RA</div></div>
+        <div class="stat-card accent"><div class="num">.318</div><div class="lbl">AVG</div></div>
+      </div>
+      <div style="background:var(--bg2);border:0.5px solid var(--bg3);border-radius:6px;padding:10px;margin-bottom:10px">
+        <div style="font-size:10px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Add game result</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px">
+          <div><div class="m-label">Date</div><input class="m-input" value="2026-05-25"></div>
+          <div><div class="m-label">Opponent</div><input class="m-input" placeholder="Team name"></div>
+          <div><div class="m-label">Result</div><select class="m-select"><option>Win</option></select></div>
+          <div><div class="m-label">Score</div><div style="display:flex;gap:4px"><input class="m-input" style="width:40px" value="9"><input class="m-input" style="width:40px" value="2"></div></div>
+        </div>
+        <button class="m-btn" style="padding:6px 12px;font-size:10px">+ Add game</button>
+      </div>
+      <div class="game-row"><span class="badge-w">W</span><span class="game-opp">Vipers · Regular · Home</span><span class="game-score">2026-05-18</span><span style="font-weight:600;color:var(--white);font-size:11px">9–2</span><span style="color:var(--gray);font-size:14px;cursor:pointer;margin-left:4px">×</span></div>
+      <div class="game-row"><span class="badge-w">W</span><span class="game-opp">Fireballs · Tournament · Away</span><span class="game-score">2026-05-11</span><span style="font-weight:600;color:var(--white);font-size:11px">7–4</span><span style="color:var(--gray);font-size:14px;cursor:pointer;margin-left:4px">×</span></div>
+    </div>
+  </div>
+  <div class="step-row"><div class="step-num">1</div><div class="step-text"><strong>Log each game</strong> — fill date, opponent, location (Home/Away/Neutral), type (Regular/Tournament/Scrimmage), score. Result auto-detects from score.</div></div>
+  <div class="step-row"><div class="step-num">2</div><div class="step-text"><strong>Add per-game batting stats</strong> — click any game in the log to open the stats modal. Enter AB/H/2B/3B/HR/RBI/R/BB/K/SB per player. The roster tab auto-calculates cumulative AVG, OBP, SLG, OPS.</div></div>
+  <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>Win/loss trend chart</strong> — scrolls down from the stat tiles. Cumulative W/L/T lines across the season.</div></div>
+</div>
+
+<!-- ── TOURNAMENTS ── -->
+<div class="section" id="sec-tournaments">
+  <div class="section-header">
+    <div class="section-icon">🥇</div>
+    <div><div class="section-title">Tournament builder</div><div class="section-desc">Build a game schedule, generate dual itineraries (coach + parent), export PDF and ICS calendar</div></div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#ffbd2e"></div><div class="dot" style="background:#28c840"></div><div class="mockup-url">softball-coach-assistant · Tournaments</div></div>
+    <div class="mockup-nav"><span class="m-tab">📊</span><span class="m-tab">📋</span><span class="m-tab">💬</span><span class="m-tab">🏆</span><span class="m-tab act">🥇 Tournaments</span></div>
+    <div class="mockup-body">
+      <div class="plan-form" style="grid-template-columns:1fr 1fr;margin-bottom:8px">
+        <div><div class="m-label">Tournament name</div><input class="m-input" value="CTX 10U Summer State"></div>
+        <div><div class="m-label">Location</div><input class="m-input" value="Taylor, TX"></div>
+        <div><div class="m-label">Start date</div><input class="m-input" value="2026-06-13"></div>
+        <div><div class="m-label">Format</div><select class="m-select"><option>Pool play + bracket</option></select></div>
+      </div>
+      <div style="font-size:10px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Game schedule</div>
+      <table class="tourn-schedule">
+        <thead><tr><th>Day</th><th>#</th><th>Game time</th><th>Arrive by</th><th>Opponent</th><th>Field</th><th>Uniform</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>1</td><td>09:00</td><td>07:45</td><td>Sting 10U</td><td>Field 3</td><td>Primary</td></tr>
+          <tr><td>1</td><td>2</td><td>13:00</td><td>12:00</td><td>Lasers Gold</td><td>Field 1</td><td>Primary</td></tr>
+          <tr><td>2</td><td>3</td><td>10:00</td><td>08:45</td><td>TBD (bracket)</td><td>TBD</td><td>Alternate</td></tr>
+        </tbody>
+      </table>
+      <button class="m-btn" style="margin-top:10px">💾 Save & generate itinerary</button>
+      <div style="margin-top:10px;background:var(--bg2);border:0.5px solid var(--bg3);border-radius:7px;overflow:hidden">
+        <div style="display:flex;border-bottom:0.5px solid var(--bg3)">
+          <span style="padding:6px 12px;font-size:10px;font-weight:600;background:var(--red);color:#fff;border-right:0.5px solid var(--bg3)">📋 Coach</span>
+          <span style="padding:6px 12px;font-size:10px;font-weight:500;color:var(--gray)">👨‍👩‍👧 Parent/Player</span>
+          <div class="export-btns" style="margin:0;padding:3px 6px">
+            <span class="export-btn">📋 Copy</span><span class="export-btn">📄 PDF</span><span class="export-btn">📅 ICS</span>
+          </div>
+        </div>
+        <div class="output-box" style="border:none;border-radius:0;background:var(--bg2)">
+          <strong>## CTX 10U Summer State — Coach Plan</strong><br>
+          <strong>### Pre-tournament prep</strong><br>
+          Finalize lineup by Wednesday. Primary: red jersey, white pants, red socks. Confirm Field 3 has dugout shade...<br><br>
+          <strong>### Game 1 vs Sting 10U — 9:00am Field 3</strong><br>
+          Arrive 7:45 · Warm-up 8:00–8:45 · Lineup posted 8:45...
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="step-row"><div class="step-num">1</div><div class="step-text"><strong>Fill the header fields</strong> — name, location, dates, format, uniforms, parking/gate info, food plan.</div></div>
+  <div class="step-row"><div class="step-num">2</div><div class="step-text"><strong>Add games with "+ Add game"</strong> — set day number, game time, arrive-by time, opponent, field number, uniform (Primary/Alternate).</div></div>
+  <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>Click "Save & generate itinerary"</strong> — AI writes a full coach plan + parent-facing weekend guide simultaneously.</div></div>
+  <div class="step-row"><div class="step-num">4</div><div class="step-text"><strong>Export:</strong> PDF (letter size, branded header), ICS (each game + arrive-by as calendar events with 45-min alerts, importable to Apple/Google/Outlook).</div></div>
+  <div class="tip-box"><i class="ti ti-calendar" aria-hidden="true"></i> The ICS file includes a "Arrive by" event between the arrive time and game start, plus a 45-minute VALARM alert. Open in any calendar app — each game becomes its own event.</div>
+</div>
+
+<!-- ── FUNDRAISING ── -->
+<div class="section" id="sec-fund">
+  <div class="section-header">
+    <div class="section-icon">💰</div>
+    <div><div class="section-title">Fundraising planner</div><div class="section-desc">AI generates coordinator and family versions of every fundraiser plan, with progress tracking</div></div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#ffbd2e"></div><div class="dot" style="background:#28c840"></div><div class="mockup-url">softball-coach-assistant · Fundraising</div></div>
+    <div class="mockup-nav"><span class="m-tab">📊</span><span class="m-tab">📋</span><span class="m-tab">💬</span><span class="m-tab">🏆</span><span class="m-tab act">💰 Fundraising</span></div>
+    <div class="mockup-body">
+      <div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card accent"><div class="num">$840</div><div class="lbl">Total raised</div></div>
+        <div class="stat-card"><div class="num">2</div><div class="lbl">Active</div></div>
+        <div class="stat-card"><div class="num">67%</div><div class="lbl">Toward goal</div></div>
+        <div class="stat-card"><div class="num">Kassidy</div><div class="lbl">Top contributor</div></div>
+      </div>
+      <div style="font-size:10px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px">Active fundraisers</div>
+      <div class="fund-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div><div class="fund-name">Pluckers Restaurant Night <span style="background:rgba(39,174,96,.15);color:#27ae60;border:0.5px solid rgba(39,174,96,.3);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600">DUAL</span></div>
+          <div class="fund-meta">Restaurant night · Jun 14 · Coordinator: Coach Jeremiah</div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--gray);margin-bottom:4px"><span>$540 raised</span><span>$800 goal (67%)</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:67%"></div></div>
+        <div class="export-btns"><span class="export-btn">📋 Coordinator</span><span class="export-btn">👨‍👩‍👧 Family</span><span class="export-btn">📄 PDF</span></div>
+      </div>
+      <div class="fund-card">
+        <div><div class="fund-name">Team Car Wash <span style="background:rgba(39,174,96,.15);color:#27ae60;border:0.5px solid rgba(39,174,96,.3);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600">DUAL</span></div>
+        <div class="fund-meta">Car wash · Jun 28 · Goal: $500</div></div>
+        <div style="margin-top:6px;font-size:10px;color:var(--gray)">$300 raised</div>
+        <div class="progress-bar" style="margin-top:4px"><div class="progress-fill" style="width:60%"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="step-row"><div class="step-num">1</div><div class="step-text"><strong>Fill in the form</strong> — name, type (11 options from restaurant night to crowdfunding), goal amount, dates, coordinator, per-player goal, description.</div></div>
+  <div class="step-row"><div class="step-num">2</div><div class="step-text"><strong>Click "Create & generate plans"</strong> — AI writes a complete Coordinator task list and a Family participation guide simultaneously.</div></div>
+  <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>Export PDF</strong> — separate PDFs for coordinator and family versions. Great for printing and distributing at team meetings.</div></div>
+</div>
+
+<!-- ── ROSTER ── -->
+<div class="section" id="sec-roster">
+  <div class="section-header">
+    <div class="section-icon">👥</div>
+    <div><div class="section-title">Roster & stats</div><div class="section-desc">Player cards with live season stats auto-calculated from every game log entry</div></div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#ffbd2e"></div><div class="dot" style="background:#28c840"></div><div class="mockup-url">softball-coach-assistant · Roster</div></div>
+    <div class="mockup-nav"><span class="m-tab">📊</span><span class="m-tab">📋</span><span class="m-tab">💬</span><span class="m-tab">🏆</span><span class="m-tab">🥇</span><span class="m-tab">💰</span><span class="m-tab act">👥 Roster</span></div>
+    <div class="mockup-body">
+      <div style="background:var(--bg2);border:0.5px solid var(--bg3);border-radius:6px;padding:10px;margin-bottom:10px">
+        <div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:6px;align-items:flex-end">
+          <div><div class="m-label">Name</div><input class="m-input" placeholder="First Last"></div>
+          <div><div class="m-label">Jersey</div><input class="m-input" style="width:44px" value="21"></div>
+          <div><div class="m-label">Position</div><select class="m-select" style="width:60px"><option>SS</option></select></div>
+          <div><div class="m-label">Bats</div><select class="m-select" style="width:44px"><option>R</option></select></div>
+          <button class="m-btn" style="padding:5px 12px;font-size:10px">+ Add</button>
+        </div>
+      </div>
+      <div class="player-grid">
+        <div class="player-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <div class="jersey">21</div>
+            <div><div class="player-name">Kassidy Cargill</div><div class="player-pos">SS · Bats R / Throws R</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:10px">
+            <div style="background:var(--bg3);border-radius:4px;padding:5px;text-align:center"><div style="font-weight:600;color:var(--white)">.342</div><div style="color:var(--gray);font-size:9px">AVG</div></div>
+            <div style="background:var(--bg3);border-radius:4px;padding:5px;text-align:center"><div style="font-weight:600;color:var(--white)">.401</div><div style="color:var(--gray);font-size:9px">OBP</div></div>
+            <div style="background:var(--bg3);border-radius:4px;padding:5px;text-align:center"><div style="font-weight:600;color:var(--white)">.521</div><div style="color:var(--gray);font-size:9px">SLG</div></div>
+            <div style="background:var(--bg3);border-radius:4px;padding:5px;text-align:center"><div style="font-weight:600;color:var(--white)">.922</div><div style="color:var(--gray);font-size:9px">OPS</div></div>
+          </div>
+        </div>
+        <div class="player-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <div class="jersey">7</div>
+            <div><div class="player-name">Maya Torres</div><div class="player-pos">P · Bats R / Throws R</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:10px">
+            <div style="background:var(--bg3);border-radius:4px;padding:5px;text-align:center"><div style="font-weight:600;color:var(--white)">.287</div><div style="color:var(--gray);font-size:9px">AVG</div></div>
+            <div style="background:var(--bg3);border-radius:4px;padding:5px;text-align:center"><div style="font-weight:600;color:var(--white)">.345</div><div style="color:var(--gray);font-size:9px">OBP</div></div>
+            <div style="background:var(--bg3);border-radius:4px;padding:5px;text-align:center"><div style="font-weight:600;color:var(--white)">.412</div><div style="color:var(--gray);font-size:9px">SLG</div></div>
+            <div style="background:var(--bg3);border-radius:4px;padding:5px;text-align:center"><div style="font-weight:600;color:var(--white)">.757</div><div style="color:var(--gray);font-size:9px">OPS</div></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:10px;overflow-x:auto">
+        <table class="table-mock">
+          <thead><tr><th>#</th><th>Player</th><th>Pos</th><th>G</th><th>AB</th><th>H</th><th>HR</th><th>RBI</th><th>AVG</th><th>OBP</th><th>OPS</th></tr></thead>
+          <tbody>
+            <tr><td>21</td><td>Kassidy Cargill</td><td>SS</td><td>11</td><td>38</td><td>13</td><td>0</td><td>9</td><td>.342</td><td>.401</td><td>.922</td></tr>
+            <tr><td>7</td><td>Maya Torres</td><td>P</td><td>11</td><td>33</td><td>9</td><td>1</td><td>7</td><td>.287</td><td>.345</td><td>.757</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="step-row"><div class="step-num">1</div><div class="step-text"><strong>Add each player</strong> — name, jersey number, primary position, batting side, throwing arm. Players appear as cards and in the stats table.</div></div>
+  <div class="step-row"><div class="step-num">2</div><div class="step-text"><strong>Click any player card</strong> to open the development modal — view lifetime stats and write private coaching notes for that player.</div></div>
+  <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>Stats auto-calculate</strong> from every game log. Go to Season → click a game → enter that game's batting lines. AVG, OBP, SLG, OPS all update instantly.</div></div>
+</div>
+
+<!-- ── LIBRARY ── -->
+<div class="section" id="sec-library">
+  <div class="section-header">
+    <div class="section-icon">📚</div>
+    <div><div class="section-title">Drill & skill library</div><div class="section-desc">AI-powered research on any softball topic, saved and searchable forever</div></div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#ffbd2e"></div><div class="dot" style="background:#28c840"></div><div class="mockup-url">softball-coach-assistant · Library</div></div>
+    <div class="mockup-nav"><span class="m-tab">📊</span><span class="m-tab">📋</span><span class="m-tab">💬</span><span class="m-tab">🏆</span><span class="m-tab">🥇</span><span class="m-tab">💰</span><span class="m-tab">👥</span><span class="m-tab act">📚 Library</span></div>
+    <div class="mockup-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+        <div><div class="m-label">Age group</div><select class="m-select"><option>10U</option></select></div>
+        <div><div class="m-label">Level</div><select class="m-select"><option>Intermediate</option></select></div>
+        <div><div class="m-label">Category</div><select class="m-select"><option>Fielding</option></select></div>
+      </div>
+      <div style="margin-bottom:8px"><div class="m-label">Topic</div><input class="m-input" value="Double-play footwork at second base"></div>
+      <button class="m-btn" style="padding:7px 12px;font-size:10px">🔍 Research</button>
+      <div class="output-box" style="margin-top:10px">
+        <strong>## Double-play footwork — 10U intermediate</strong><br>
+        <strong>### Key mechanics</strong><br>
+        The pivot foot touches the bag as the throw arrives. Weight transfers to the throwing-side foot for momentum away from the runner...<br><br>
+        <strong>### Progressions</strong><br>
+        1. Stationary footwork pattern (no ball) · 2. Slow-roll toss from SS position · 3. Live double-play reps...
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="m-btn" style="padding:6px 12px;font-size:10px">💾 Save to library</button>
+      </div>
+      <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:var(--bg);border:0.5px solid var(--bg4);border-radius:6px;padding:9px;cursor:pointer">
+          <div style="font-weight:600;font-size:11px;color:var(--white);margin-bottom:2px">Drop ball grip</div>
+          <div style="font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Pitching · 10U · Beginner</div>
+          <div style="font-size:10px;color:var(--gray)">Index and middle fingers sit across the narrow seams. Key cue: snap wrist down like throwing a frisbee...</div>
+        </div>
+        <div style="background:var(--bg);border:0.5px solid var(--bg4);border-radius:6px;padding:9px;cursor:pointer">
+          <div style="font-weight:600;font-size:11px;color:var(--white);margin-bottom:2px">Slap hitting fundamentals</div>
+          <div style="font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Hitting · 10U · Advanced</div>
+          <div style="font-size:10px;color:var(--gray)">The slap is initiated by a crossover step. Timing the jump out of the box is as important as bat contact...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="step-row"><div class="step-num">1</div><div class="step-text"><strong>Set the 3 filters</strong> — age group, skill level, category. Then type a specific topic in the text field.</div></div>
+  <div class="step-row"><div class="step-num">2</div><div class="step-text"><strong>Click "Research"</strong> — AI generates a full breakdown covering key mechanics, progressions, common errors, coaching cues, and how to integrate into practice.</div></div>
+  <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>Save to library</strong> — saved entries are searchable and filterable by category. Click any saved card to view or reprint the full breakdown.</div></div>
+</div>
+
+<!-- ── INTEGRATIONS ── -->
+<div class="section" id="sec-integrations">
+  <div class="section-header">
+    <div class="section-icon">🔗</div>
+    <div><div class="section-title">Integrations hub</div><div class="section-desc">7 sub-pages connecting GameChanger stats, Band posts, and NCS tournaments</div></div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#ffbd2e"></div><div class="dot" style="background:#28c840"></div><div class="mockup-url">softball-coach-assistant · Integrations</div></div>
+    <div class="mockup-nav"><span class="m-tab">📊</span><span class="m-tab">📋</span><span class="m-tab">💬</span><span class="m-tab">🏆</span><span class="m-tab">🥇</span><span class="m-tab">💰</span><span class="m-tab">👥</span><span class="m-tab">📚</span><span class="m-tab act">🔗 Integrations</span></div>
+    <div class="mockup-body">
+      <div class="int-subnav">
+        <span class="int-tab act">🏠 Hub</span>
+        <span class="int-tab">📊 GameChanger</span>
+        <span class="int-tab">🔔 Band</span>
+        <span class="int-tab">🏆 NCS</span>
+        <span class="int-tab">✏ Compose</span>
+        <span class="int-tab">👥 Roster Sync</span>
+        <span class="int-tab">⚙ Settings</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">
+        <div class="platform-card"><div class="plat-icon" style="background:rgba(52,152,219,.15)">📊</div><div><div class="plat-name">GameChanger</div><div class="plat-status">Manual import · paste CSV</div></div><div class="status-dot" style="background:var(--amber)"></div></div>
+        <div class="platform-card"><div class="plat-icon" style="background:rgba(231,76,60,.15)">🔔</div><div><div class="plat-name">Band</div><div class="plat-status">Clipboard · deeplink</div></div><div class="status-dot" style="background:var(--amber)"></div></div>
+        <div class="platform-card"><div class="plat-icon" style="background:rgba(39,174,96,.15)">🏆</div><div><div class="plat-name">NCS Fastpitch</div><div class="plat-status">20 events loaded</div></div><div class="status-dot" style="background:var(--green)"></div></div>
+      </div>
+      <div style="font-size:10px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Upcoming NCS · Central TX</div>
+      <div class="ncs-card"><div class="ncs-name">CTX 10U Summer State (Triple Points)</div><div style="display:flex;justify-content:space-between;align-items:center"><div class="ncs-meta">Jun 13–14 · Taylor, TX · 12 teams · 10U</div><div style="display:flex;gap:4px"><span class="export-btn">+ Add</span><span class="export-btn">📅 ICS</span><span class="export-btn">🔔 Band</span></div></div></div>
+      <div class="ncs-card"><div class="ncs-name">NCS World Series — Class A</div><div style="display:flex;justify-content:space-between;align-items:center"><div class="ncs-meta">Jul 7–11 · Gainesville, TX · 128 teams</div><div style="display:flex;gap:4px"><span class="export-btn">+ Add</span><span class="export-btn">📅 ICS</span></div></div></div>
+    </div>
+  </div>
+
+  <div style="margin-top:1rem;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px">
+      <div style="font-size:13px;font-weight:500;margin-bottom:8px;color:var(--color-text-primary)">📊 GameChanger workflow</div>
+      <div class="step-row" style="margin-bottom:6px"><div class="step-num" style="width:18px;height:18px;font-size:10px">1</div><div class="step-text" style="font-size:11px">Export stats from GC app → Share → Copy stats</div></div>
+      <div class="step-row" style="margin-bottom:6px"><div class="step-num" style="width:18px;height:18px;font-size:10px">2</div><div class="step-text" style="font-size:11px">Integrations → GameChanger → "+ Paste stats"</div></div>
+      <div class="step-row" style="margin-bottom:6px"><div class="step-num" style="width:18px;height:18px;font-size:10px">3</div><div class="step-text" style="font-size:11px">AI parses any format → fills stat tiles</div></div>
+      <div class="step-row" style="margin-bottom:0"><div class="step-num" style="width:18px;height:18px;font-size:10px">4</div><div class="step-text" style="font-size:11px">Choose: AI Analysis, Highlight Script, or Practice Focus</div></div>
+    </div>
+    <div style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px">
+      <div style="font-size:13px;font-weight:500;margin-bottom:8px;color:var(--color-text-primary)">🔔 Band workflow</div>
+      <div class="step-row" style="margin-bottom:6px"><div class="step-num" style="width:18px;height:18px;font-size:10px">1</div><div class="step-text" style="font-size:11px">Integrations → Band → pick a post type</div></div>
+      <div class="step-row" style="margin-bottom:6px"><div class="step-num" style="width:18px;height:18px;font-size:10px">2</div><div class="step-text" style="font-size:11px">AI drafts the post using your team name, last game result, coach name</div></div>
+      <div class="step-row" style="margin-bottom:6px"><div class="step-num" style="width:18px;height:18px;font-size:10px">3</div><div class="step-text" style="font-size:11px">Optionally hit "Refine" to iterate</div></div>
+      <div class="step-row" style="margin-bottom:0"><div class="step-num" style="width:18px;height:18px;font-size:10px">4</div><div class="step-text" style="font-size:11px">Copy → Open Band deeplink → paste and post</div></div>
+    </div>
+  </div>
+
+  <div style="margin-top:10px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px">
+    <div style="font-size:13px;font-weight:500;margin-bottom:8px;color:var(--color-text-primary)">🏆 NCS tournament lookup — 20 events loaded</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:11px;color:var(--color-text-secondary)">
+      <div><strong style="font-weight:500;color:var(--color-text-primary);display:block;margin-bottom:4px">June 2026</strong>East TX Midnight State<br>NCS Class C State<br>CTX 10U/12U/HS State<br>NCS Arizona State<br>NCS Dallas Summer Slam<br>NCS SA Summer Kickoff<br>Hill Country Classic</div>
+      <div><strong style="font-weight:500;color:var(--color-text-primary);display:block;margin-bottom:4px">July 2026</strong>NCS World Series A/B/C<br>(Gainesville, TX)<br>CTX Summer Shootout<br>NCS North TX Finale</div>
+      <div><strong style="font-weight:500;color:var(--color-text-primary);display:block;margin-bottom:4px">Aug–Oct 2026</strong>TX Fall Kickoff<br>CTX Fall Warm-Up (Georgetown)<br>NCS Fall State Central TX<br>NCS Fall Championship<br>TX Fall Finale<br>CTX End-of-Season</div>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:var(--color-text-secondary)">Each event: <strong style="font-weight:500;color:var(--color-text-primary)">"+ Add"</strong> pre-fills the Tournament tab · <strong style="font-weight:500;color:var(--color-text-primary)">"📅 ICS"</strong> downloads a calendar file · <strong style="font-weight:500;color:var(--color-text-primary)">"🔔 Band"</strong> routes to AI Compose with tournament context pre-filled</div>
+  </div>
+
+  <div class="tip-box" style="margin-top:10px"><i class="ti ti-settings" aria-hidden="true"></i> Set up Integrations → Settings first: enter your GC player name, Band group name, and coach name. These pre-fill every AI prompt in the integrations module for more accurate output.</div>
+</div>
+
+<script>
+function show(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.toc-btn').forEach(b => b.classList.remove('active'));
+  const sec = document.getElementById('sec-' + id);
+  if (sec) sec.classList.add('active');
+  if (btn) btn.classList.add('active');
+  window.scrollTo && window.scrollTo({top: 0, behavior: 'smooth'});
+}
+</script>
