@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Softball Assistant — Integrations Hub</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --bg2: #13161d;
+    --bg3: #1a1e28;
+    --bg4: #222635;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e8eaf0;
+    --text2: #8b90a0;
+    --text3: #555c70;
+    --gc-green: #00c853;
+    --gc-green2: #00e676;
+    --band-orange: #ff6b35;
+    --band-orange2: #ff8f65;
+    --ncs-blue: #1565c0;
+    --ncs-blue2: #42a5f5;
+    --accent: #7c6fe0;
+    --accent2: #a89ef5;
+    --success: #00c853;
+    --warn: #ffab00;
+    --danger: #ff5252;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'SF Pro Text', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* ── Top nav ── */
+  .top-nav {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 20px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .top-nav::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0;
+    padding: 14px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color .2s, border-color .2s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--text); border-bottom-color: var(--accent2); }
+
+  /* ── Layout ── */
+  .page { display: none; padding: 24px 20px; max-width: 900px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── Platform badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+  }
+  .badge-gc { background: rgba(0,200,83,.15); color: var(--gc-green2); border: 1px solid rgba(0,200,83,.25); }
+  .badge-band { background: rgba(255,107,53,.15); color: var(--band-orange2); border: 1px solid rgba(255,107,53,.25); }
+  .badge-ncs { background: rgba(66,165,245,.15); color: var(--ncs-blue2); border: 1px solid rgba(66,165,245,.25); }
+  .badge-sync { background: rgba(124,111,224,.15); color: var(--accent2); border: 1px solid rgba(124,111,224,.25); }
+
+  /* ── Platform status row ── */
+  .platform-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .platform-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    position: relative;
+    transition: border-color .2s;
+  }
+  .platform-card:hover { border-color: var(--border2); }
+  .platform-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+  .platform-icon.gc { background: rgba(0,200,83,.12); }
+  .platform-icon.band { background: rgba(255,107,53,.12); }
+  .platform-icon.ncs { background: rgba(66,165,245,.12); }
+  .platform-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+  .platform-desc { font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 14px; }
+  .status-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+  .dot-green { background: var(--gc-green); box-shadow: 0 0 6px var(--gc-green); }
+  .dot-orange { background: var(--warn); }
+  .dot-gray { background: var(--text3); }
+  .status-text { font-size: 11px; color: var(--text2); display: flex; align-items: center; }
+  .connect-btn {
+    width: 100%;
+    padding: 9px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    background: var(--bg4);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+    margin-top: 10px;
+  }
+  .connect-btn:hover { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.2); }
+  .connect-btn.connected { border-color: rgba(0,200,83,.3); color: var(--gc-green); background: rgba(0,200,83,.07); cursor: default; }
+  .connect-btn.gc-btn { border-color: rgba(0,200,83,.3); color: var(--gc-green2); }
+  .connect-btn.gc-btn:hover { background: rgba(0,200,83,.08); }
+  .connect-btn.band-btn { border-color: rgba(255,107,53,.3); color: var(--band-orange2); }
+  .connect-btn.band-btn:hover { background: rgba(255,107,53,.08); }
+  .connect-btn.ncs-btn { border-color: rgba(66,165,245,.3); color: var(--ncs-blue2); }
+  .connect-btn.ncs-btn:hover { background: rgba(66,165,245,.08); }
+
+  /* ── Sections ── */
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 12px;
+    margin-top: 24px;
+  }
+
+  /* ── Feed / timeline ── */
+  .feed-item {
+    display: flex;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .feed-item:last-child { border-bottom: none; }
+  .feed-dot {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .feed-dot.gc { background: rgba(0,200,83,.12); }
+  .feed-dot.band { background: rgba(255,107,53,.12); }
+  .feed-dot.ncs { background: rgba(66,165,245,.12); }
+  .feed-content { flex: 1; min-width: 0; }
+  .feed-title { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+  .feed-meta { font-size: 12px; color: var(--text2); }
+  .feed-time { font-size: 11px; color: var(--text3); flex-shrink: 0; margin-top: 2px; }
+
+  /* ── Stats grid ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .stat-num { font-size: 22px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+  .stat-label { font-size: 11px; color: var(--text2); }
+
+  /* ── Message composer ── */
+  .composer {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .composer-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+  .comp-tab {
+    flex: 1;
+    padding: 12px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color .15s, background .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  .comp-tab:hover { background: rgba(255,255,255,.03); color: var(--text); }
+  .comp-tab.active { color: var(--text); background: rgba(255,255,255,.04); }
+  .comp-tab .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .comp-body { padding: 16px; }
+  .msg-type-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .msg-type-btn {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text2);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .msg-type-btn.active, .msg-type-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent2);
+    background: rgba(124,111,224,.1);
+  }
+  .composer-textarea {
+    width: 100%;
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 13px;
+    padding: 12px;
+    resize: none;
+    font-family: inherit;
+    line-height: 1.5;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .composer-textarea:focus { border-color: var(--border2); }
+  .composer-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+  }
+  .ai-gen-btn {
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(124,111,224,.4);
+    background: rgba(124,111,224,.1);
+    color: var(--accent2);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .ai-gen-btn:hover { background: rgba(124,111,224,.2); }
+  .send-btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+  .send-btn:hover { opacity: .85; }
+  .send-btn.gc { background: var(--gc-green); color: #000; }
+  .send-btn.band { background: var(--band-orange); }
+  .send-btn.ncs { background: var(--ncs-blue2); color: #000; }
+
+  /* ── Tournament cards ── */
+  .tourney-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .tourney-card:hover { border-color: var(--border2); }
+  .tourney-date {
+    background: rgba(66,165,245,.1);
+    border: 1px solid rgba(66,165,245,.2);
+    border-radius: 10px;
+    padding: 8px 10px;
+    text-align: center;
+    min-width: 52px;
+    flex-shrink: 0;
+  }
+  .tourney-month { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--ncs-blue2); letter-spacing: .5px; }
+  .tourney-day { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1; }
+  .tourney-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .tourney-details { font-size: 12px; color: var(--text2); line-height: 1.6; }
+  .tourney-actions { margin-left: auto; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+  .small-btn {
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg4);
+    color: var(--text2);
+    font-size: 11px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .15s;
+  }
+  .small-btn:hover { border-color: var(--border2); color: var(--text); }
+  .small-btn.primary { border-color: rgba(66,165,245,.3); color: var(--ncs-blue2); background: rgba(66,165,245,.07); }
+  .small-btn.primary:hover { background: rgba(66,165,245,.13); }
+  .small-btn.band-s { border-color: rgba(255,107,53,.3); color: var(--band-orange2); background: rgba(255,107,53,.07); }
+  .small-btn.band-s:hover { background: rgba(255,107,53,.13); }
+
+  /* ── AI assistant strip ── */
+  .ai-strip {
+    background: linear-gradient(135deg, rgba(124,111,224,.12), rgba(66,165,245,.08));
+    border: 1px solid rgba(124,111,224,.25);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .ai-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(124,111,224,.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .ai-strip-text { flex: 1; font-size: 13px; color: var(--text2); line-height: 1.5; }
+  .ai-strip-text strong { color: var(--text); }
+
+  /* ── Roster sync ── */
+  .roster-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .roster-row:last-child { border-bottom: none; }
+  .player-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    color: var(--text2);
+  }
+  .player-name { flex: 1; font-size: 13px; font-weight: 500; }
+  .player-num { font-size: 11px; color: var(--text3); }
+  .sync-status { display: flex; gap: 5px; }
+  .sync-icon { font-size: 13px; opacity: .7; }
+  .sync-icon.active { opacity: 1; }
+
+  /* ── Log / audit ── */
+  .log-entry {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .log-entry:last-child { border-bottom: none; }
+  .log-time { color: var(--text3); min-width: 60px; font-variant-numeric: tabular-nums; }
+  .log-msg { color: var(--text2); flex: 1; }
+  .log-msg strong { color: var(--text); }
+  .log-src { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+  .log-src.gc { background: rgba(0,200,83,.12); color: var(--gc-green); }
+  .log-src.band { background: rgba(255,107,53,.12); color: var(--band-orange); }
+  .log-src.ncs { background: rgba(66,165,245,.12); color: var(--ncs-blue2); }
+  .log-src.sys { background: rgba(255,255,255,.07); color: var(--text2); }
+
+  /* ── Search ── */
+  .search-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 13px;
+    padding: 10px 14px;
+    outline: none;
+    font-family: inherit;
+    margin-bottom: 16px;
+  }
+  .search-input:focus { border-color: var(--border2); }
+  .search-input::placeholder { color: var(--text3); }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .modal-title { font-size: 16px; font-weight: 700; }
+  .close-btn { background: none; border: none; color: var(--text2); font-size: 20px; cursor: pointer; padding: 0; line-height: 1; }
+  .modal-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; display: block; }
+  .modal-input {
+    width: 100%;
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 13px;
+    padding: 10px 12px;
+    outline: none;
+    font-family: inherit;
+    margin-bottom: 14px;
+  }
+  .modal-input:focus { border-color: var(--border2); }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .modal-cancel { padding: 9px 16px; border-radius: 8px; border: 1px solid var(--border); background: none; color: var(--text2); font-size: 13px; cursor: pointer; }
+  .modal-confirm { padding: 9px 18px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+  /* ── AI response box ── */
+  .ai-response {
+    background: var(--bg4);
+    border: 1px solid rgba(124,111,224,.2);
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+    margin-top: 12px;
+    display: none;
+    white-space: pre-wrap;
+  }
+  .ai-response.visible { display: block; }
+  .typing { color: var(--accent2); }
+
+  /* ── Toggle ── */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-label { font-size: 13px; }
+  .toggle-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .toggle {
+    width: 36px;
+    height: 20px;
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    cursor: pointer;
+    position: relative;
+    transition: background .2s;
+    flex-shrink: 0;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--text3);
+    transition: transform .2s, background .2s;
+  }
+  .toggle.on { background: rgba(124,111,224,.3); border-color: var(--accent); }
+  .toggle.on::after { transform: translateX(16px); background: var(--accent2); }
+
+  /* ── Tag chips ── */
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .tag {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    color: var(--text2);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* ── Notification toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    z-index: 200;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .3s, transform .3s;
+    pointer-events: none;
+    max-width: 280px;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { border-color: rgba(0,200,83,.3); }
+  .toast.warn { border-color: rgba(255,171,0,.3); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════ NAV ══════════════════════════════════ -->
+<nav class="top-nav">
+  <button class="tab-btn active" onclick="switchTab('hub')">🔗 Hub</button>
+  <button class="tab-btn" onclick="switchTab('gc')">⚾ GameChanger</button>
+  <button class="tab-btn" onclick="switchTab('band')">📣 Band</button>
+  <button class="tab-btn" onclick="switchTab('ncs')">🏆 NCS Fastpitch</button>
+  <button class="tab-btn" onclick="switchTab('composer')">✉️ Compose</button>
+  <button class="tab-btn" onclick="switchTab('roster')">👥 Roster Sync</button>
+  <button class="tab-btn" onclick="switchTab('settings')">⚙️ Settings</button>
+</nav>
+
+<!-- ══════════════════════════════════ HUB ══════════════════════════════════ -->
+<div class="page active" id="tab-hub">
+  <div class="ai-strip">
+    <div class="ai-icon">🤖</div>
+    <div class="ai-strip-text">
+      <strong>Integration Hub</strong> — Band, GameChanger, and NCS Fastpitch connected in one place. Auto-sync rosters, push game updates to Band, and import NCS tournament schedules into your assistant.
+    </div>
+    <button class="ai-gen-btn" onclick="runAISummary()">✨ Briefing</button>
+  </div>
+  <div id="ai-briefing" class="ai-response"></div>
+
+  <div class="section-label">Platform status</div>
+  <div class="platform-grid">
+    <div class="platform-card" id="gc-platform">
+      <div class="platform-icon gc">⚾</div>
+      <div class="platform-name">GameChanger</div>
+      <div class="platform-desc">Live scores, pitch-by-pitch data, video clips, and player stat exports for your roster.</div>
+      <div class="status-text"><span class="status-dot dot-orange"></span> Not connected</div>
+      <button class="connect-btn gc-btn" onclick="connectPlatform('gc')">Connect GameChanger →</button>
+    </div>
+    <div class="platform-card" id="band-platform">
+      <div class="platform-icon band">📣</div>
+      <div class="platform-name">Band</div>
+      <div class="platform-desc">Team communication, schedule posts, announcements, and parent/player group messaging.</div>
+      <div class="status-text"><span class="status-dot dot-orange"></span> Not connected</div>
+      <button class="connect-btn band-btn" onclick="connectPlatform('band')">Connect Band →</button>
+    </div>
+    <div class="platform-card" id="ncs-platform">
+      <div class="platform-icon ncs">🏆</div>
+      <div class="platform-name">NCS Fastpitch</div>
+      <div class="platform-desc">Tournament finder, rankings, team registration, and Central Texas event schedules.</div>
+      <div class="status-text"><span class="status-dot dot-green"></span> API available (read-only)</div>
+      <button class="connect-btn ncs-btn" onclick="openNCS()">Browse Tournaments →</button>
+    </div>
+  </div>
+
+  <div class="section-label">Live feed</div>
+  <div class="card">
+    <div id="live-feed">
+      <div class="feed-item">
+        <div class="feed-dot ncs">🏆</div>
+        <div class="feed-content">
+          <div class="feed-title">NCS Central Texas 10U Summer State — <span style="color:var(--ncs-blue2)">Jun 13–14 · Taylor, TX</span></div>
+          <div class="feed-meta">Triple points event · 12 teams registered · 4GG format</div>
+          <div class="tags"><span class="tag">10U</span><span class="tag">Open</span><span class="tag">Triple Points</span></div>
+        </div>
+        <div class="feed-time">Today</div>
+      </div>
+      <div class="feed-item">
+        <div class="feed-dot ncs">🏆</div>
+        <div class="feed-content">
+          <div class="feed-title">NCS Class C State — <span style="color:var(--ncs-blue2)">Jun 6–7 · Richardson, TX</span></div>
+          <div class="feed-meta">69 teams registered · 8U · 10U · 12U · 14U</div>
+          <div class="tags"><span class="tag">State</span><span class="tag">Class C</span><span class="tag">MVP</span></div>
+        </div>
+        <div class="feed-time">Today</div>
+      </div>
+      <div class="feed-item">
+        <div class="feed-dot gc">⚾</div>
+        <div class="feed-content">
+          <div class="feed-title">GameChanger — Connect to pull live stats</div>
+          <div class="feed-meta">Live scores, batting averages, pitching logs, and video will appear here after connecting.</div>
+        </div>
+        <div class="feed-time">—</div>
+      </div>
+      <div class="feed-item">
+        <div class="feed-dot band">📣</div>
+        <div class="feed-content">
+          <div class="feed-title">Band — Connect to sync team messages</div>
+          <div class="feed-meta">Tournament announcements, practice reminders, and parent updates will appear here.</div>
+        </div>
+        <div class="feed-time">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Quick actions</div>
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom: 24px;">
+    <button class="connect-btn gc-btn" style="padding:14px" onclick="switchTab('gc')">⚾ Import GC Stats</button>
+    <button class="connect-btn band-btn" style="padding:14px" onclick="switchTab('composer')">📣 Post to Band</button>
+    <button class="connect-btn ncs-btn" style="padding:14px" onclick="switchTab('ncs')">🏆 Find Tournament</button>
+    <button class="connect-btn" style="padding:14px" onclick="switchTab('roster')">👥 Sync Roster</button>
+  </div>
+
+  <div class="section-label">Activity log</div>
+  <div class="card">
+    <div id="log-container">
+      <div class="log-entry">
+        <span class="log-time">Now</span>
+        <span class="log-src sys">SYS</span>
+        <span class="log-msg">Integration hub initialized. Awaiting platform connections.</span>
+      </div>
+      <div class="log-entry">
+        <span class="log-time">Today</span>
+        <span class="log-src ncs">NCS</span>
+        <span class="log-msg">Fetched <strong>4 upcoming Central Texas tournaments</strong> for 10U–14U divisions.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ GAMECHANGER ══════════════════════════ -->
+<div class="page" id="tab-gc">
+  <div class="section-label">GameChanger integration</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">⚾ <span>GameChanger — Stats & Video</span></div>
+      <span class="badge badge-gc">GC</span>
+    </div>
+    <p style="color:var(--text2); font-size:13px; line-height:1.6; margin-bottom:16px;">
+      GameChanger doesn't expose a public API, but you can use the <strong style="color:var(--text)">manual CSV export</strong> from your team's GC account or paste game data below for AI analysis. Your existing highlight editor (<code style="background:var(--bg4);padding:2px 5px;border-radius:4px;font-size:12px">softball_highlight_editor.py</code>) can run alongside.
+    </p>
+
+    <div class="section-label" style="margin-top:0">Import game data</div>
+    <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
+      <button class="small-btn primary" onclick="openGCImport()">📋 Paste GC Data</button>
+      <button class="small-btn" onclick="openCSVUpload()">📁 Upload CSV Export</button>
+      <button class="small-btn" onclick="openDeeplink('gc')">🔗 Open GameChanger App</button>
+    </div>
+
+    <div class="section-label">Kassidy #21 — season stats (sample)</div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-num" style="color:var(--gc-green)">14</div><div class="stat-label">Games</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--gc-green)">.342</div><div class="stat-label">AVG</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--gc-green)">8</div><div class="stat-label">RBIs</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--gc-green)">5</div><div class="stat-label">2B</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--gc-green)">2</div><div class="stat-label">HR</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--gc-green)">.890</div><div class="stat-label">OPS</div></div>
+    </div>
+
+    <div class="section-label">AI analysis</div>
+    <textarea class="composer-textarea" id="gc-analysis-input" rows="3" placeholder="Paste batting data, game log, or describe recent performance for AI analysis..."></textarea>
+    <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+      <button class="ai-gen-btn" onclick="gcAnalyze()">✨ Analyze Stats</button>
+      <button class="ai-gen-btn" onclick="gcHighlightPrompt()">🎬 Generate Highlight Script</button>
+      <button class="ai-gen-btn" onclick="gcPracticePrompt()">📋 Focus Area → Practice Plan</button>
+    </div>
+    <div id="gc-ai-response" class="ai-response"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🎬 Video clips → Band</div>
+    </div>
+    <p style="color:var(--text2); font-size:13px; line-height:1.6; margin-bottom:14px;">
+      Your <code style="background:var(--bg4);padding:2px 5px;border-radius:4px;font-size:12px">softball_highlight_editor.py</code> generates clips from <code style="background:var(--bg4);padding:2px 5px;border-radius:4px;font-size:12px">/Users/jeremiahcargill/Documents/Kasshighlights/</code>. Use the workflow below to push trimmed clips to Band.
+    </p>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="display:flex; align-items:center; gap:10px; padding:12px; background:var(--bg4); border-radius:10px; border:1px solid var(--border);">
+        <div style="width:28px; height:28px; background:rgba(0,200,83,.15); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:13px;">1</div>
+        <div style="flex:1; font-size:12px; color:var(--text2);">Run <strong style="color:var(--text)">softball_highlight_editor.py</strong> to trim game clips</div>
+        <button class="small-btn" onclick="toast('Opening terminal script...','sys')">Run</button>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; padding:12px; background:var(--bg4); border-radius:10px; border:1px solid var(--border);">
+        <div style="width:28px; height:28px; background:rgba(0,200,83,.15); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:13px;">2</div>
+        <div style="flex:1; font-size:12px; color:var(--text2);">AI writes a <strong style="color:var(--text)">caption and post text</strong> for each highlight</div>
+        <button class="small-btn primary" onclick="gcCaptionGen()">Generate</button>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; padding:12px; background:var(--bg4); border-radius:10px; border:1px solid var(--border);">
+        <div style="width:28px; height:28px; background:rgba(255,107,53,.15); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:13px;">3</div>
+        <div style="flex:1; font-size:12px; color:var(--text2);">Post clip + caption to <strong style="color:var(--text)">Band team group</strong></div>
+        <button class="small-btn band-s" onclick="switchTab('composer')">Compose →</button>
+      </div>
+    </div>
+    <div id="gc-caption-out" class="ai-response" style="margin-top:14px;"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ BAND ══════════════════════════════════ -->
+<div class="page" id="tab-band">
+  <div class="section-label">Band integration</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📣 <span>Band — Team Communication</span></div>
+      <span class="badge badge-band">BAND</span>
+    </div>
+    <p style="color:var(--text2); font-size:13px; line-height:1.6; margin-bottom:16px;">
+      Band is the team's primary communication hub. This integration lets you draft AI-assisted posts, game updates, tournament announcements, and practice reminders — then copy or deeplink them into Band.
+    </p>
+
+    <div class="section-label" style="margin-top:0">Auto-post triggers</div>
+    <div style="margin-bottom:16px;">
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Game recap after each GC game</div>
+          <div class="toggle-sub">Auto-generate and queue a Band post after the final out</div>
+        </div>
+        <div class="toggle" onclick="toggleSwitch(this)"></div>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Practice reminders (24h before)</div>
+          <div class="toggle-sub">Push time, location, and drill focus to Band group</div>
+        </div>
+        <div class="toggle on" onclick="toggleSwitch(this)"></div>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Tournament schedule on registration</div>
+          <div class="toggle-sub">When registered on NCS, post game schedule to Band</div>
+        </div>
+        <div class="toggle on" onclick="toggleSwitch(this)"></div>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Highlight clips from GameChanger</div>
+          <div class="toggle-sub">Post game highlights with AI-generated captions</div>
+        </div>
+        <div class="toggle" onclick="toggleSwitch(this)"></div>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Fundraiser progress updates</div>
+          <div class="toggle-sub">Post weekly contribution totals and goals to Band</div>
+        </div>
+        <div class="toggle" onclick="toggleSwitch(this)"></div>
+      </div>
+    </div>
+
+    <div class="section-label">Draft queue</div>
+    <div id="band-queue">
+      <div class="feed-item">
+        <div class="feed-dot band">📣</div>
+        <div class="feed-content">
+          <div class="feed-title">Practice reminder — Saturday 9am</div>
+          <div class="feed-meta">Georgetown Fields · Focus: fielding + base running · 90 min</div>
+        </div>
+        <button class="small-btn band-s" onclick="postToBand('Practice reminder')">Post</button>
+      </div>
+      <div class="feed-item">
+        <div class="feed-dot ncs">🏆</div>
+        <div class="feed-content">
+          <div class="feed-title">NCS 10U Summer State — Jun 13–14 details</div>
+          <div class="feed-meta">Taylor, TX · Schedule ready · 4 game guarantee</div>
+        </div>
+        <button class="small-btn band-s" onclick="postToBand('Tournament schedule')">Post</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <button class="ai-gen-btn" onclick="bandGenPost()">✨ AI Draft New Post</button>
+      <button class="small-btn" style="margin-left:8px" onclick="openDeeplink('band')">🔗 Open Band App</button>
+    </div>
+    <div id="band-ai-response" class="ai-response"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📱 Band post templates</div>
+    </div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:8px;">
+      <button class="small-btn band-s" style="padding:12px; text-align:left; line-height:1.5" onclick="loadTemplate('game_recap')">⚾ Game recap<br><small style="opacity:.6">Score, highlights, next game</small></button>
+      <button class="small-btn band-s" style="padding:12px; text-align:left; line-height:1.5" onclick="loadTemplate('practice_reminder')">🏋️ Practice reminder<br><small style="opacity:.6">Time, location, focus</small></button>
+      <button class="small-btn band-s" style="padding:12px; text-align:left; line-height:1.5" onclick="loadTemplate('tournament_schedule')">🏆 Tournament schedule<br><small style="opacity:.6">Full itinerary for parents</small></button>
+      <button class="small-btn band-s" style="padding:12px; text-align:left; line-height:1.5" onclick="loadTemplate('fundraiser')">💰 Fundraiser update<br><small style="opacity:.6">Progress + CTA</small></button>
+      <button class="small-btn band-s" style="padding:12px; text-align:left; line-height:1.5" onclick="loadTemplate('weather')">🌧️ Weather cancellation<br><small style="opacity:.6">Reschedule + details</small></button>
+      <button class="small-btn band-s" style="padding:12px; text-align:left; line-height:1.5" onclick="loadTemplate('congrats')">🌟 Player shoutout<br><small style="opacity:.6">Highlight individual win</small></button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ NCS ══════════════════════════════════ -->
+<div class="page" id="tab-ncs">
+  <div class="section-label">NCS Fastpitch tournaments</div>
+
+  <input class="search-input" id="ncs-search" placeholder="🔍  Search by name, city, or date..." oninput="filterTourneys()">
+
+  <div id="ncs-tournament-list">
+    <div class="tourney-card" onclick="openNCSDetail('east-tx-midnight')">
+      <div class="tourney-date"><div class="tourney-month">Jun</div><div class="tourney-day">6</div></div>
+      <div style="flex:1">
+        <div class="tourney-name">East Texas Midnight State</div>
+        <div class="tourney-details">📍 Whitehouse, TX · Director: Joey Martin<br>Divisions: 8U · 9U · 10U · 12U · 14U · 18U</div>
+        <div class="tags"><span class="tag">State</span><span class="tag">MIDNIGHT</span><span class="tag">ELITE</span></div>
+      </div>
+      <div class="tourney-actions">
+        <span class="badge badge-ncs">9 teams</span>
+        <button class="small-btn primary" onclick="event.stopPropagation(); importTourney('East Texas Midnight State', 'Jun 6-7', 'Whitehouse, TX')">+ Add to App</button>
+        <button class="small-btn band-s" onclick="event.stopPropagation(); bandFromNCS('East Texas Midnight State')">📣 Band</button>
+      </div>
+    </div>
+
+    <div class="tourney-card" onclick="openNCSDetail('class-c-state')">
+      <div class="tourney-date"><div class="tourney-month">Jun</div><div class="tourney-day">6</div></div>
+      <div style="flex:1">
+        <div class="tourney-name">NCS Class C State</div>
+        <div class="tourney-details">📍 Richardson, TX · Director: Joey Martin<br>Divisions: 8U · 10U · 12U · 14U</div>
+        <div class="tags"><span class="tag">State</span><span class="tag">Class C</span><span class="tag">MVP</span></div>
+      </div>
+      <div class="tourney-actions">
+        <span class="badge badge-ncs">69 teams</span>
+        <button class="small-btn primary" onclick="event.stopPropagation(); importTourney('NCS Class C State', 'Jun 6-7', 'Richardson, TX')">+ Add to App</button>
+        <button class="small-btn band-s" onclick="event.stopPropagation(); bandFromNCS('NCS Class C State')">📣 Band</button>
+      </div>
+    </div>
+
+    <div class="tourney-card" onclick="openNCSDetail('ctx-10u-summer')">
+      <div class="tourney-date"><div class="tourney-month">Jun</div><div class="tourney-day">13</div></div>
+      <div style="flex:1">
+        <div class="tourney-name">Central TX NCS 10U Summer State — Triple Points</div>
+        <div class="tourney-details">📍 Taylor, TX · Director: Maggie Stoecklein<br>4 Game Guarantee · Open division</div>
+        <div class="tags"><span class="tag">10U</span><span class="tag">Triple Points</span><span class="tag">Open</span><span class="tag">4GG</span></div>
+      </div>
+      <div class="tourney-actions">
+        <span class="badge badge-ncs">12 teams</span>
+        <button class="small-btn primary" onclick="event.stopPropagation(); importTourney('CTX 10U Summer State', 'Jun 13-14', 'Taylor, TX')">+ Add to App</button>
+        <button class="small-btn band-s" onclick="event.stopPropagation(); bandFromNCS('CTX 10U Summer State')">📣 Band</button>
+      </div>
+    </div>
+
+    <div class="tourney-card" onclick="openNCSDetail('ctx-12u-summer')">
+      <div class="tourney-date"><div class="tourney-month">Jun</div><div class="tourney-day">13</div></div>
+      <div style="flex:1">
+        <div class="tourney-name">Central TX NCS 12U Summer State — Triple Points</div>
+        <div class="tourney-details">📍 Temple, TX · Director: Maggie Stoecklein<br>4 Game Guarantee · Open division</div>
+        <div class="tags"><span class="tag">12U</span><span class="tag">Triple Points</span><span class="tag">Open</span><span class="tag">4GG</span></div>
+      </div>
+      <div class="tourney-actions">
+        <span class="badge badge-ncs">24 teams</span>
+        <button class="small-btn primary" onclick="event.stopPropagation(); importTourney('CTX 12U Summer State', 'Jun 13-14', 'Temple, TX')">+ Add to App</button>
+        <button class="small-btn band-s" onclick="event.stopPropagation(); bandFromNCS('CTX 12U Summer State')">📣 Band</button>
+      </div>
+    </div>
+
+    <div class="tourney-card" onclick="openNCSDetail('ctx-hs-summer')">
+      <div class="tourney-date"><div class="tourney-month">Jun</div><div class="tourney-day">13</div></div>
+      <div style="flex:1">
+        <div class="tourney-name">Central TX NCS High School Summer State — Triple Points</div>
+        <div class="tourney-details">📍 Taylor / Georgetown / Killeen / Temple, TX · Director: Maggie Stoecklein</div>
+        <div class="tags"><span class="tag">HS</span><span class="tag">Triple Points</span><span class="tag">4GG</span><span class="tag">Georgetown</span></div>
+      </div>
+      <div class="tourney-actions">
+        <span class="badge badge-ncs">HS Open</span>
+        <button class="small-btn primary" onclick="event.stopPropagation(); importTourney('CTX HS Summer State', 'Jun 13-14', 'Georgetown, TX')">+ Add to App</button>
+        <button class="small-btn band-s" onclick="event.stopPropagation(); bandFromNCS('CTX HS Summer State')">📣 Band</button>
+      </div>
+    </div>
+
+    <div class="tourney-card" onclick="openNCSDetail('az-state')">
+      <div class="tourney-date"><div class="tourney-month">Jun</div><div class="tourney-day">13</div></div>
+      <div style="flex:1">
+        <div class="tourney-name">NCS Arizona State Championship</div>
+        <div class="tourney-details">📍 Tucson, AZ · Director: Chris Basaldua<br>Divisions: 10U · 12U · 14U · 18U · 4GG</div>
+        <div class="tags"><span class="tag">State</span><span class="tag">SHOWTIME</span><span class="tag">ARIZONA</span></div>
+      </div>
+      <div class="tourney-actions">
+        <span class="badge badge-ncs">16 teams</span>
+        <button class="small-btn primary" onclick="event.stopPropagation(); importTourney('NCS AZ State Championship', 'Jun 13-14', 'Tucson, AZ')">+ Add to App</button>
+        <button class="small-btn band-s" onclick="event.stopPropagation(); bandFromNCS('NCS AZ State Championship')">📣 Band</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:16px;">
+    <button class="connect-btn ncs-btn" style="max-width:260px" onclick="openNCS()">View all events on playncs.com →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ COMPOSE ══════════════════════════════ -->
+<div class="page" id="tab-composer">
+  <div class="section-label">Message composer</div>
+  <div class="composer">
+    <div class="composer-tabs">
+      <button class="comp-tab active" onclick="switchCompTab(this,'band')">
+        <span class="dot" style="background:var(--band-orange)"></span> Band Post
+      </button>
+      <button class="comp-tab" onclick="switchCompTab(this,'gc')">
+        <span class="dot" style="background:var(--gc-green)"></span> GC Annotation
+      </button>
+      <button class="comp-tab" onclick="switchCompTab(this,'ncs')">
+        <span class="dot" style="background:var(--ncs-blue2)"></span> NCS Pre-tourney
+      </button>
+    </div>
+
+    <div class="comp-body">
+      <div class="msg-type-row" id="msg-types">
+        <button class="msg-type-btn active" onclick="setMsgType(this,'game_recap')">⚾ Game Recap</button>
+        <button class="msg-type-btn" onclick="setMsgType(this,'practice')">🏋️ Practice</button>
+        <button class="msg-type-btn" onclick="setMsgType(this,'tournament')">🏆 Tournament</button>
+        <button class="msg-type-btn" onclick="setMsgType(this,'fundraiser')">💰 Fundraiser</button>
+        <button class="msg-type-btn" onclick="setMsgType(this,'player_spotlight')">⭐ Spotlight</button>
+        <button class="msg-type-btn" onclick="setMsgType(this,'custom')">✏️ Custom</button>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+        <input class="search-input" id="context-input" placeholder="Context: opponent, score, player name, date, location..." style="margin-bottom:0; flex:1; min-width:200px;">
+      </div>
+
+      <textarea class="composer-textarea" id="compose-output" rows="8" placeholder="Your message will appear here after AI generation, or type directly..."></textarea>
+
+      <div id="char-count" style="text-align:right; font-size:11px; color:var(--text3); margin-top:4px;">0 chars</div>
+    </div>
+
+    <div class="composer-footer">
+      <button class="ai-gen-btn" id="ai-compose-btn" onclick="aiCompose()">✨ AI Generate</button>
+      <div style="display:flex; gap:8px;">
+        <button class="small-btn" onclick="copyMessage()">📋 Copy</button>
+        <button id="platform-send-btn" class="send-btn band" onclick="sendMessage()">Post to Band →</button>
+      </div>
+    </div>
+  </div>
+  <div id="compose-ai-response" class="ai-response" style="margin-top:14px;"></div>
+</div>
+
+<!-- ══════════════════════════════════ ROSTER SYNC ══════════════════════════ -->
+<div class="page" id="tab-roster">
+  <div class="section-label">Roster sync — all platforms</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">👥 Roster</div>
+      <div style="display:flex; gap:8px;">
+        <button class="small-btn primary" onclick="syncRoster()">↻ Sync All</button>
+        <button class="small-btn" onclick="addPlayer()">+ Player</button>
+      </div>
+    </div>
+    <div id="roster-list">
+      <!-- Roster items populated by JS -->
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="margin-bottom:14px;">📊 Sync status</div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-num" style="color:var(--gc-green)" id="gc-sync-count">0</div><div class="stat-label">GC synced</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--band-orange)" id="band-sync-count">0</div><div class="stat-label">Band synced</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--ncs-blue2)" id="ncs-sync-count">12</div><div class="stat-label">NCS registered</div></div>
+      <div class="stat-box"><div class="stat-num" id="total-players">0</div><div class="stat-label">Total players</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ SETTINGS ══════════════════════════════ -->
+<div class="page" id="tab-settings">
+  <div class="section-label">API keys & connections</div>
+  <div class="card">
+    <div class="card-title" style="margin-bottom:16px;">🔑 Anthropic API key</div>
+    <label class="modal-label">Your Anthropic API key (stored in memory only)</label>
+    <div style="display:flex; gap:8px;">
+      <input type="password" class="modal-input" id="api-key-input" placeholder="sk-ant-..." style="flex:1; margin-bottom:0;">
+      <button class="send-btn" onclick="saveApiKey()">Save</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="margin-bottom:16px;">🏆 NCS Fastpitch</div>
+    <label class="modal-label">Team name (for auto-filtering events)</label>
+    <input class="modal-input" id="ncs-team-input" placeholder="e.g. Cortinas 2K15 10U" value="Cortinas 10U">
+    <label class="modal-label">Age division</label>
+    <input class="modal-input" id="ncs-age-input" placeholder="10U" value="10U">
+    <label class="modal-label">Director (for filtering)</label>
+    <input class="modal-input" id="ncs-director-input" placeholder="e.g. Maggie Stoecklein" value="Maggie Stoecklein">
+    <button class="send-btn" style="margin-top:4px;" onclick="saveNCSSettings()">Save NCS Settings</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="margin-bottom:16px;">⚾ GameChanger</div>
+    <p style="color:var(--text2); font-size:13px; line-height:1.6; margin-bottom:14px;">GC does not have a public API. Data integration is via CSV export from your GC team page, or via the SMS/OCR script (<code style="background:var(--bg4);padding:2px 5px;border-radius:4px">sms_video_ocr.py</code>).</p>
+    <label class="modal-label">Player name (for AI stat analysis)</label>
+    <input class="modal-input" id="gc-player-input" value="Kassidy #21">
+    <label class="modal-label">Team name</label>
+    <input class="modal-input" id="gc-team-input" value="Cortinas 10U">
+    <button class="send-btn" onclick="saveGCSettings()">Save GC Settings</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="margin-bottom:16px;">📣 Band</div>
+    <p style="color:var(--text2); font-size:13px; line-height:1.6; margin-bottom:14px;">Band doesn't expose a public API. This integration uses deeplinks + clipboard. Tap "Post to Band" to copy the message and open Band automatically.</p>
+    <label class="modal-label">Team group name (for post headers)</label>
+    <input class="modal-input" id="band-group-input" value="Cortinas 10U — Parents">
+    <label class="modal-label">Coach name</label>
+    <input class="modal-input" id="band-coach-input" value="Coach Cargill">
+    <button class="send-btn" onclick="saveBandSettings()">Save Band Settings</button>
+  </div>
+
+  <div class="section-label">About this module</div>
+  <div class="card">
+    <p style="color:var(--text2); font-size:13px; line-height:1.6;">
+      This is the <strong style="color:var(--text)">Integrations tab</strong> for <strong style="color:var(--text)">softball-coach-assistant</strong> (<a href="https://jeremiah9980.github.io/softball-coach-assistant/" style="color:var(--accent2)">jeremiah9980.github.io/softball-coach-assistant</a>). Merge the <code style="background:var(--bg4);padding:2px 5px;border-radius:4px">Integrations</code> tab section from this file into your main <code style="background:var(--bg4);padding:2px 5px;border-radius:4px">index.html</code> nav and tab system.
+    </p>
+    <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="small-btn primary" onclick="window.open('https://playncs.com/fastpitch','_blank')">playncs.com/fastpitch ↗</button>
+      <button class="small-btn" onclick="window.open('https://github.com/jeremiah9980/softball-coach-assistant','_blank')">GitHub repo ↗</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ MODALS ══════════════════════════════ -->
+<div class="modal-overlay" id="gc-import-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚾ Import GameChanger Data</div>
+      <button class="close-btn" onclick="closeModal('gc-import-modal')">×</button>
+    </div>
+    <label class="modal-label">Paste your GC box score, batting line, or game log</label>
+    <textarea class="modal-input" id="gc-paste-data" rows="8" placeholder="Paste from GameChanger app or web...&#10;&#10;Example:&#10;Kassidy — 3 AB, 2 H, 1 RBI, 1 2B, 2 K&#10;Final: Cortinas 8, Opponents 3"></textarea>
+    <label class="modal-label">Game context (optional)</label>
+    <input class="modal-input" id="gc-game-context" placeholder="e.g. Pool play, 6-2 win, hot day">
+    <div class="modal-footer">
+      <button class="modal-cancel" onclick="closeModal('gc-import-modal')">Cancel</button>
+      <button class="modal-confirm" onclick="processGCImport()">Import & Analyze</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="tourney-detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="tourney-modal-title">Tournament Details</div>
+      <button class="close-btn" onclick="closeModal('tourney-detail-modal')">×</button>
+    </div>
+    <div id="tourney-modal-body"></div>
+    <div class="modal-footer">
+      <button class="modal-cancel" onclick="closeModal('tourney-detail-modal')">Close</button>
+      <button class="modal-confirm" onclick="importCurrentTourney()">+ Add to App</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──
+const S = {
+  apiKey: '',
+  activeTab: 'hub',
+  compTab: 'band',
+  msgType: 'game_recap',
+  connectedPlatforms: { gc: false, band: false, ncs: true },
+  roster: [
+    { num: '21', name: 'Kassidy Cargill', pos: 'CF/P', gc: false, band: false },
+    { num: '3',  name: 'Avery Thompson',  pos: '1B',   gc: false, band: false },
+    { num: '7',  name: 'Sofia Martinez',  pos: 'SS',   gc: false, band: false },
+    { num: '12', name: 'Lily Chen',        pos: '3B',   gc: false, band: false },
+    { num: '15', name: 'Emma Davis',       pos: 'C',    gc: false, band: false },
+    { num: '18', name: 'Riley Johnson',    pos: '2B',   gc: false, band: false },
+    { num: '9',  name: 'Grace Wilson',     pos: 'LF',   gc: false, band: false },
+    { num: '24', name: 'Hannah Lopez',     pos: 'RF',   gc: false, band: false },
+    { num: '5',  name: 'Chloe Brown',      pos: 'P',    gc: false, band: false },
+  ],
+  currentTourney: null
+};
+
+// ── Toast ──
+function toast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 2800);
+}
+
+// ── Tab routing ──
+function switchTab(id) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', b.getAttribute('onclick').includes("'"+id+"'"));
+  });
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  S.activeTab = id;
+}
+
+// ── Composer sub-tabs ──
+function switchCompTab(btn, platform) {
+  document.querySelectorAll('.comp-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  S.compTab = platform;
+  const sendBtn = document.getElementById('platform-send-btn');
+  sendBtn.className = 'send-btn ' + platform;
+  const labels = { band:'Post to Band →', gc:'Save to GC →', ncs:'Share NCS →' };
+  sendBtn.textContent = labels[platform];
+}
+
+function setMsgType(btn, type) {
+  document.querySelectorAll('.msg-type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  S.msgType = type;
+}
+
+// ── Platform connections ──
+function connectPlatform(platform) {
+  const names = { gc: 'GameChanger', band: 'Band' };
+  toast(`Opening ${names[platform]} auth... Copy team token from app settings.`, 'warn');
+  openDeeplink(platform);
+  setTimeout(() => {
+    S.connectedPlatforms[platform] = true;
+    const el = document.getElementById(platform + '-platform');
+    el.querySelector('.status-text').innerHTML = '<span class="status-dot dot-green"></span> Connected';
+    el.querySelector('.connect-btn').textContent = '✓ Connected';
+    el.querySelector('.connect-btn').className = 'connect-btn connected';
+    addLog(platform.toUpperCase(), `Connected to ${names[platform]}.`);
+  }, 1500);
+}
+
+function openDeeplink(platform) {
+  const links = {
+    gc: 'https://gc.com',
+    band: 'https://band.us',
+    ncs: 'https://playncs.com/fastpitch'
+  };
+  window.open(links[platform], '_blank');
+}
+
+function openNCS() { window.open('https://playncs.com/fastpitch', '_blank'); }
+
+// ── Log ──
+function addLog(src, msg) {
+  const c = document.getElementById('log-container');
+  const now = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+  const row = document.createElement('div');
+  row.className = 'log-entry';
+  row.innerHTML = `<span class="log-time">${now}</span><span class="log-src ${src.toLowerCase()}">${src}</span><span class="log-msg">${msg}</span>`;
+  c.insertBefore(row, c.firstChild);
+}
+
+// ── AI calls ──
+async function callAI(prompt, outputId) {
+  const out = document.getElementById(outputId);
+  out.classList.add('visible');
+  out.innerHTML = '<span class="typing">⟳ Generating...</span>';
+
+  const key = S.apiKey || document.getElementById('api-key-input')?.value;
+  if (!key) {
+    out.textContent = '⚠️ Add your Anthropic API key in Settings first.';
+    return;
+  }
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 800,
+        system: 'You are a fastpitch softball coach assistant for the Cortinas 10U team based in Georgetown, TX. Player #21 is Kassidy. Keep responses focused, practical, and formatted for a coach or parent audience. When writing Band posts, keep them warm, energetic, and brief (under 250 words). When analyzing stats, be specific and actionable.',
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(b => b.text || '').join('') || 'No response.';
+    out.textContent = text;
+    addLog('SYS', 'AI response generated.');
+  } catch(e) {
+    out.textContent = 'Error: ' + e.message;
+  }
+}
+
+// ── Hub AI briefing ──
+function runAISummary() {
+  callAI(
+    'Give me a brief coach briefing for the week: we have the NCS Central Texas 10U Summer State tournament Jun 13-14 in Taylor TX. Also the Class C State in Richardson Jun 6-7. Write a crisp 3-item briefing covering (1) upcoming tournament prep priority, (2) one Band message to send parents this week, and (3) one practice focus suggestion. Keep it under 200 words total.',
+    'ai-briefing'
+  );
+}
+
+// ── GC ──
+function gcAnalyze() {
+  const ctx = document.getElementById('gc-analysis-input').value || 'Kassidy #21 batting .342 with 2 HR, 8 RBI in 14 games. Recent game: 2 for 3 with a double.';
+  callAI(`Analyze this GameChanger softball data and give 2-3 actionable coaching insights for practice planning:\n${ctx}`, 'gc-ai-response');
+}
+
+function gcHighlightPrompt() {
+  callAI('Write a 3-sentence Band post caption for a highlight video of Kassidy (#21) making a great defensive play in CF. Make it enthusiastic but not over-the-top. Include the team name Cortinas.', 'gc-ai-response');
+}
+
+function gcPracticePrompt() {
+  const ctx = document.getElementById('gc-analysis-input').value || 'Struggling with off-speed pitches. 4 strikeouts in last 2 games.';
+  callAI(`Based on this GameChanger observation, write a 20-minute focused practice drill plan for a 10U fastpitch player:\n${ctx}`, 'gc-ai-response');
+}
+
+function gcCaptionGen() {
+  callAI('Write a short Band/social caption (2-3 sentences) for a softball highlight clip of Kassidy (#21, Cortinas 10U) hitting a double in a tournament game. Include a fire emoji or two. Keep it fun and parent-friendly.', 'gc-caption-out');
+}
+
+// ── Band ──
+function bandGenPost() {
+  callAI('Draft a Band team post for the Cortinas 10U parents group about the upcoming NCS Central Texas 10U Summer State tournament on June 13-14 in Taylor, TX. Include: what to bring, expected schedule format (4GG), parking note, and an encouraging team message. Keep it under 200 words. Use 1-2 relevant emojis.', 'band-ai-response');
+}
+
+const TEMPLATES = {
+  game_recap: 'Last game recap: we played [OPPONENT] and the final score was [SCORE]. Great effort from the whole team! Key highlights: [HIGHLIGHT1], [HIGHLIGHT2]. Next up: [NEXT GAME DATE + LOCATION]. Let\'s keep the momentum going! ⚾🔥',
+  practice_reminder: '📅 Practice reminder!\n\nDay/Time: [DAY], [TIME]\n📍 Location: [LOCATION]\nFocus: [DRILL FOCUS]\nDuration: ~90 min\n\nPlease bring: water, glove, batting helmet. See you there! — Coach Cargill',
+  tournament_schedule: '🏆 TOURNAMENT WEEKEND — [TOURNEY NAME]\n\n📍 [LOCATION]\n📅 [DATES]\n\nTeam arrival: [TIME]\nPool play: [GAMES]\nBracket: [IF WIN]\n\nWhat to bring: cooler, chairs, pop-up canopy, change of cleats.\n\nLET\'S GO CORTINAS! 🥎💪',
+  fundraiser: '💰 Fundraiser Update!\n\nWe\'ve raised $[AMOUNT] toward our $[GOAL] goal — [PERCENT]% there!\n\nThank you to everyone who\'s contributed. If you haven\'t yet, here\'s the link: [LINK]\n\nEvery dollar helps with tournament fees, uniforms, and equipment. ❤️',
+  weather: '⛈️ Practice/game update for [DATE]:\n\nDue to weather, [PRACTICE/GAME] has been [CANCELLED/POSTPONED]. New date/time: [RESCHEDULED TIME].\n\nMonitor the group for updates. Stay safe! — Coach Cargill',
+  congrats: '⭐ Player Spotlight!\n\nShoutout to [PLAYER NAME] for [ACHIEVEMENT] this week! [SPECIFIC DETAIL ABOUT PERFORMANCE].\n\nSo proud of the hard work and dedication. This is what it\'s all about! 🥎👏'
+};
+
+function loadTemplate(key) {
+  switchTab('composer');
+  setTimeout(() => {
+    document.getElementById('compose-output').value = TEMPLATES[key] || '';
+    updateCharCount();
+  }, 100);
+}
+
+function postToBand(itemName) {
+  navigator.clipboard?.writeText(`[Band post draft for: ${itemName}]`).catch(() => {});
+  toast(`"${itemName}" copied — paste into Band!`, 'success');
+  addLog('BAND', `Queued: ${itemName}`);
+}
+
+function bandFromNCS(tourneyName) {
+  switchTab('composer');
+  setTimeout(() => {
+    document.getElementById('context-input').value = `NCS Tournament: ${tourneyName}`;
+    document.querySelectorAll('.msg-type-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.msg-type-btn')[2].classList.add('active');
+    S.msgType = 'tournament';
+    aiCompose();
+  }, 150);
+}
+
+// ── NCS ──
+function filterTourneys() {
+  const q = document.getElementById('ncs-search').value.toLowerCase();
+  document.querySelectorAll('#ncs-tournament-list .tourney-card').forEach(card => {
+    card.style.display = card.textContent.toLowerCase().includes(q) ? 'flex' : 'none';
+  });
+}
+
+function openNCSDetail(id) {
+  const details = {
+    'east-tx-midnight': { name: 'East Texas Midnight State', dates: 'June 6–7, 2026', loc: 'Whitehouse, TX', div: '8U · 9U · 10U · 12U · 14U · 18U', teams: 9, director: 'Joey Martin', tags: 'MIDNIGHT · ELITEEVENTS · MVP' },
+    'class-c-state': { name: 'NCS Class C State', dates: 'June 6–7, 2026', loc: 'Richardson, TX', div: '8U · 10U · 12U · 14U', teams: 69, director: 'Joey Martin', tags: 'CLASS C · STATE · MVP' },
+    'ctx-10u-summer': { name: 'CTX NCS 10U Summer State — Triple Points', dates: 'June 13–14, 2026', loc: 'Taylor, TX', div: '10U · Open · 4 Game Guarantee', teams: 12, director: 'Maggie Stoecklein', tags: 'TRIPLE POINTS · OPEN · 4GG' },
+    'ctx-12u-summer': { name: 'CTX NCS 12U Summer State — Triple Points', dates: 'June 13–14, 2026', loc: 'Temple, TX', div: '12U · Open · 4 Game Guarantee', teams: 24, director: 'Maggie Stoecklein', tags: 'TRIPLE POINTS · OPEN · 4GG' },
+    'ctx-hs-summer': { name: 'CTX NCS High School Summer State', dates: 'June 13–14, 2026', loc: 'Taylor / Georgetown / Killeen / Temple, TX', div: 'HS · 4 Game Guarantee', teams: '—', director: 'Maggie Stoecklein', tags: 'HS · TRIPLE POINTS · GEORGETOWN' },
+    'az-state': { name: 'NCS Arizona State Championship', dates: 'June 13–14, 2026', loc: 'Tucson, AZ', div: '10U · 12U · 14U · 18U · 4GG', teams: 16, director: 'Chris Basaldua', tags: 'SHOWTIME · TUCSON · ARIZONA' }
+  };
+  const d = details[id];
+  if (!d) return;
+  S.currentTourney = d;
+  document.getElementById('tourney-modal-title').textContent = d.name;
+  document.getElementById('tourney-modal-body').innerHTML = `
+    <div style="display:grid; gap:10px; font-size:13px; margin-bottom:10px;">
+      <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border);">
+        <span style="color:var(--text2)">📅 Dates</span><span style="font-weight:600">${d.dates}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border);">
+        <span style="color:var(--text2)">📍 Location</span><span style="text-align:right; max-width:60%">${d.loc}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border);">
+        <span style="color:var(--text2)">🏅 Divisions</span><span style="text-align:right; max-width:60%">${d.div}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border);">
+        <span style="color:var(--text2)">👤 Director</span><span>${d.director}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; padding:10px 0;">
+        <span style="color:var(--text2)">⚾ Teams</span><span>${d.teams}</span>
+      </div>
+    </div>
+    <div class="tags">${d.tags.split('·').map(t => `<span class="tag">${t.trim()}</span>`).join('')}</div>
+    <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="small-btn band-s" onclick="bandFromNCS('${d.name}')">📣 Draft Band Post</button>
+      <button class="small-btn primary" onclick="window.open('https://playncs.com/fastpitch/Events','_blank')">View on NCS ↗</button>
+    </div>
+  `;
+  document.getElementById('tourney-detail-modal').classList.add('open');
+}
+
+function importCurrentTourney() {
+  if (!S.currentTourney) return;
+  const d = S.currentTourney;
+  toast(`"${d.name}" added to your Tournaments tab!`, 'success');
+  addLog('NCS', `Tournament imported: ${d.name} · ${d.dates} · ${d.loc}`);
+  closeModal('tourney-detail-modal');
+}
+
+function importTourney(name, dates, loc) {
+  toast(`"${name}" added to Tournaments!`, 'success');
+  addLog('NCS', `Tournament imported: ${name} · ${dates} · ${loc}`);
+}
+
+// ── Compose ──
+function aiCompose() {
+  const ctx = document.getElementById('context-input').value;
+  const type = S.msgType;
+  const platform = S.compTab;
+
+  const prompts = {
+    game_recap: `Write a ${platform === 'band' ? 'Band team' : 'social'} post: game recap. Context: ${ctx || 'recent win for Cortinas 10U'}. Keep it energetic, under 200 words.`,
+    practice: `Write a practice reminder post for the Cortinas 10U parents Band group. Context: ${ctx || 'Saturday morning, Georgetown fields'}. Include time, what to bring, focus drill.`,
+    tournament: `Write a tournament preparation / schedule announcement for the Cortinas 10U parents Band group. Context: ${ctx || 'upcoming NCS tournament'}. Include what to expect (4GG format), what to bring, carpool note.`,
+    fundraiser: `Write a fundraiser update post for the Cortinas 10U Band group. Context: ${ctx || 'midway through fundraiser, great progress'}. Warm tone, include CTA. Under 150 words.`,
+    player_spotlight: `Write a player spotlight shoutout for the Band group. Context: ${ctx || 'Kassidy #21 had a great game'}. Enthusiastic, specific, under 100 words.`,
+    custom: `Write a team message for ${platform}. Context: ${ctx}. Keep it appropriate for a 10U softball parent group.`
+  };
+
+  const out = document.getElementById('compose-output');
+  const key = S.apiKey || document.getElementById('api-key-input')?.value;
+  if (!key) {
+    out.value = '⚠️ Add your Anthropic API key in Settings first.';
+    return;
+  }
+
+  out.value = '⟳ Generating...';
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 600,
+      system: 'You are a fastpitch softball coach assistant for Cortinas 10U in Georgetown, TX. Coach Cargill / Kassidy #21. Write warm, practical, emoji-appropriate messages for parents and players.',
+      messages: [{ role: 'user', content: prompts[type] || prompts.custom }]
+    })
+  }).then(r => r.json()).then(data => {
+    const text = data.content?.map(b => b.text || '').join('') || 'Error generating.';
+    out.value = text;
+    updateCharCount();
+    addLog('SYS', 'Compose: AI message generated.');
+  }).catch(e => { out.value = 'Error: ' + e.message; });
+}
+
+function updateCharCount() {
+  const v = document.getElementById('compose-output')?.value || '';
+  const el = document.getElementById('char-count');
+  if (el) el.textContent = v.length + ' chars';
+}
+
+document.getElementById('compose-output')?.addEventListener('input', updateCharCount);
+
+function copyMessage() {
+  const v = document.getElementById('compose-output').value;
+  navigator.clipboard?.writeText(v).then(() => toast('Copied to clipboard!', 'success')).catch(() => {
+    document.getElementById('compose-output').select();
+    document.execCommand('copy');
+    toast('Copied!', 'success');
+  });
+}
+
+function sendMessage() {
+  const msg = document.getElementById('compose-output').value;
+  if (!msg || msg.startsWith('⟳')) return;
+  copyMessage();
+  openDeeplink(S.compTab);
+  addLog('BAND', 'Message copied + Band opened for paste.');
+}
+
+// ── Roster ──
+function renderRoster() {
+  const container = document.getElementById('roster-list');
+  container.innerHTML = '';
+  S.roster.forEach(p => {
+    const initials = p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const row = document.createElement('div');
+    row.className = 'roster-row';
+    row.innerHTML = `
+      <div class="player-avatar">${initials}</div>
+      <div style="min-width:26px; font-size:12px; font-weight:700; color:var(--text3);">#${p.num}</div>
+      <div class="player-name">${p.name}</div>
+      <div class="player-num">${p.pos}</div>
+      <div class="sync-status">
+        <span class="sync-icon ${p.gc ? 'active' : ''}" title="GameChanger">⚾</span>
+        <span class="sync-icon ${p.band ? 'active' : ''}" title="Band">📣</span>
+        <span class="sync-icon active" title="App">📱</span>
+      </div>
+    `;
+    container.appendChild(row);
+  });
+  document.getElementById('total-players').textContent = S.roster.length;
+  document.getElementById('gc-sync-count').textContent = S.roster.filter(p=>p.gc).length;
+  document.getElementById('band-sync-count').textContent = S.roster.filter(p=>p.band).length;
+}
+
+function syncRoster() {
+  toast('Syncing roster... connect platforms in Settings first.', 'warn');
+  addLog('SYS', 'Roster sync requested. Awaiting platform connections.');
+}
+
+function addPlayer() {
+  const name = prompt('Player full name:');
+  if (!name) return;
+  const num = prompt('Jersey number:');
+  const pos = prompt('Position (e.g. SS, CF, P):');
+  S.roster.push({ num: num||'?', name, pos: pos||'—', gc: false, band: false });
+  renderRoster();
+  toast(`${name} added to roster!`, 'success');
+  addLog('SYS', `Player added: ${name} #${num}`);
+}
+
+// ── GC Import ──
+function openGCImport() { document.getElementById('gc-import-modal').classList.add('open'); }
+function openCSVUpload() { toast('Upload CSV from GameChanger web app > Team > Stats > Export', 'warn'); }
+function processGCImport() {
+  const data = document.getElementById('gc-paste-data').value;
+  const ctx = document.getElementById('gc-game-context').value;
+  closeModal('gc-import-modal');
+  document.getElementById('gc-analysis-input').value = data;
+  if (ctx) document.getElementById('gc-analysis-input').value += '\nContext: ' + ctx;
+  gcAnalyze();
+  addLog('GC', 'Game data imported for AI analysis.');
+}
+
+// ── Toggle ──
+function toggleSwitch(el) { el.classList.toggle('on'); }
+
+// ── Modal ──
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ── Settings save ──
+function saveApiKey() {
+  const k = document.getElementById('api-key-input').value;
+  if (k) { S.apiKey = k; toast('API key saved (session memory only)', 'success'); }
+}
+function saveNCSSettings() { toast('NCS settings saved!', 'success'); addLog('NCS', 'Settings updated.'); }
+function saveGCSettings() { toast('GameChanger settings saved!', 'success'); }
+function saveBandSettings() { toast('Band settings saved!', 'success'); }
+
+// ── Init ──
+renderRoster();
+</script>
+</body>
+</html>

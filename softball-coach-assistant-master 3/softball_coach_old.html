@@ -1,0 +1,2797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Softball Coach Assistant</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a1628;--bg2:#0f1f3d;--bg3:#162848;--bg4:#1e3560;
+  --red:#c0392b;--red2:#e74c3c;--red3:#ff6b5b;
+  --white:#f8f9fa;--text:#e8edf5;--gray:#8892a4;--gray2:#5a6577;
+  --green:#27ae60;--amber:#e67e22;--blue:#3498db;
+  --shadow:0 4px 12px rgba(0,0,0,.3);
+}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;line-height:1.5}
+button,input,select,textarea{font-family:inherit}
+button{cursor:pointer;border:none;background:none;color:inherit}
+a{color:var(--red3);text-decoration:none}
+
+/* ── HEADER ─────────────────────────────────── */
+header{background:var(--bg2);border-bottom:3px solid var(--red);padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:50}
+.logo{font-size:20px;font-weight:700;letter-spacing:-0.3px;display:flex;align-items:center;gap:8px}
+.logo span{color:var(--red3)}
+.team-name{color:var(--gray);font-size:13px;padding-left:12px;border-left:1px solid var(--bg4);margin-left:4px}
+.header-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.icon-btn{background:transparent;border:1px solid var(--bg4);color:var(--gray);padding:7px 12px;border-radius:6px;font-size:12px;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+.icon-btn:hover{border-color:var(--gray);color:var(--white)}
+.icon-btn.ok{border-color:var(--green);color:var(--green)}
+.icon-btn.warn{border-color:var(--amber);color:var(--amber)}
+
+/* ── NAV ────────────────────────────────────── */
+nav{background:var(--bg2);display:flex;border-bottom:1px solid var(--bg3);overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{padding:14px 18px;color:var(--gray);font-size:13px;font-weight:500;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+nav button.active{color:var(--white);border-bottom-color:var(--red2)}
+nav button:hover:not(.active){color:var(--text);background:rgba(255,255,255,.02)}
+.nav-icon{font-size:14px}
+
+/* ── MAIN ───────────────────────────────────── */
+main{flex:1;padding:20px;max-width:1200px;width:100%;margin:0 auto}
+.tab{display:none;animation:fadeIn .2s}
+.tab.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+h1{font-size:22px;margin-bottom:4px}
+h2{font-size:18px;margin-bottom:8px}
+h3{font-size:15px;margin-bottom:10px;color:var(--text)}
+.subtitle{color:var(--gray);font-size:13px;margin-bottom:18px}
+
+/* ── FORM ELEMENTS ──────────────────────────── */
+label{display:block;font-size:11px;color:var(--gray);margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--bg4);color:var(--white);padding:9px 12px;border-radius:7px;font-size:14px;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--red2)}
+select option{background:var(--bg2)}
+textarea{resize:vertical;line-height:1.5}
+.form-row{display:grid;gap:12px;margin-bottom:12px}
+.form-row.c2{grid-template-columns:1fr 1fr}
+.form-row.c3{grid-template-columns:repeat(3,1fr)}
+.form-row.c4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:640px){.form-row.c2,.form-row.c3,.form-row.c4{grid-template-columns:1fr}}
+.form-group{margin-bottom:12px}
+
+.btn{background:var(--red);color:#fff;padding:10px 18px;border-radius:7px;font-size:14px;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover:not(:disabled){background:var(--red2);transform:translateY(-1px)}
+.btn:disabled{background:var(--bg4);cursor:not-allowed;color:var(--gray)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-ghost{background:transparent;border:1px solid var(--bg4);color:var(--text)}
+.btn-ghost:hover:not(:disabled){border-color:var(--gray);background:rgba(255,255,255,.03)}
+.btn-danger{background:var(--bg3);color:var(--red3);border:1px solid var(--red)}
+.btn-danger:hover:not(:disabled){background:var(--red);color:#fff}
+.btn-blue{background:var(--blue)}
+.btn-blue:hover:not(:disabled){background:#5dade2}
+
+/* ── CARDS ──────────────────────────────────── */
+.card{background:var(--bg2);border:1px solid var(--bg3);border-radius:10px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card.compact{padding:12px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap}
+.card-head h3{margin:0}
+
+/* ── OUTPUT (MARKDOWN) ──────────────────────── */
+.output{background:var(--bg);border:1px solid var(--bg4);border-radius:8px;padding:18px;font-size:14px;line-height:1.7;color:var(--text);min-height:80px}
+.output.empty{color:var(--gray);font-style:italic;text-align:center}
+.output.error{color:var(--red3);border-color:var(--red)}
+.output h1,.output h2,.output h3{color:var(--white);margin:14px 0 8px}
+.output h1{font-size:18px}.output h2{font-size:16px}.output h3{font-size:14px;color:var(--red3)}
+.output ul,.output ol{margin:8px 0 8px 22px}
+.output li{margin-bottom:3px}
+.output p{margin:8px 0}
+.output strong{color:var(--white)}
+.output code{background:var(--bg3);padding:2px 6px;border-radius:3px;font-size:12px;color:var(--red3)}
+.output pre{background:var(--bg3);padding:10px;border-radius:6px;overflow-x:auto;margin:10px 0}
+.output blockquote{border-left:3px solid var(--red);padding-left:12px;color:var(--gray);margin:8px 0}
+.output hr{border:none;border-top:1px solid var(--bg4);margin:14px 0}
+.output table{border-collapse:collapse;margin:10px 0;width:100%}
+.output th,.output td{border:1px solid var(--bg4);padding:6px 10px;text-align:left;font-size:13px}
+.output th{background:var(--bg3)}
+
+.cursor{display:inline-block;width:8px;height:14px;background:var(--red3);animation:blink 1s infinite;vertical-align:middle}
+@keyframes blink{50%{opacity:0}}
+
+/* ── DASHBOARD ──────────────────────────────── */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px}
+.stat-tile{background:var(--bg2);border:1px solid var(--bg3);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:4px}
+.stat-tile .num{font-size:32px;font-weight:700;color:var(--white);line-height:1}
+.stat-tile .lbl{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:.6px}
+.stat-tile .sub{font-size:12px;color:var(--gray2);margin-top:6px}
+.stat-tile.accent{border-color:var(--red);background:linear-gradient(180deg,var(--bg2),rgba(192,57,43,.05))}
+.stat-tile.accent .num{color:var(--red3)}
+
+/* ── CHAT ───────────────────────────────────── */
+.chat-layout{display:grid;grid-template-columns:240px 1fr;gap:14px;min-height:500px}
+@media(max-width:760px){.chat-layout{grid-template-columns:1fr;min-height:auto}.chat-sidebar{max-height:200px}}
+.chat-sidebar{background:var(--bg2);border:1px solid var(--bg3);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+.chat-thread{padding:10px 12px;border-radius:7px;background:var(--bg);border:1px solid var(--bg4);cursor:pointer;font-size:13px;transition:all .15s;display:flex;align-items:center;gap:8px}
+.chat-thread:hover{border-color:var(--gray2)}
+.chat-thread.active{background:var(--red);color:#fff;border-color:var(--red);font-weight:500}
+.chat-thread .ttitle{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-thread .del{opacity:.5;font-size:14px;line-height:1}
+.chat-thread:hover .del{opacity:1}
+.chat-main{display:flex;flex-direction:column;background:var(--bg2);border:1px solid var(--bg3);border-radius:10px;overflow:hidden}
+.chat-msgs{flex:1;padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;min-height:400px;max-height:60vh}
+.msg{max-width:85%;padding:12px 16px;border-radius:12px;font-size:14px;line-height:1.6;word-wrap:break-word}
+.msg.user{align-self:flex-end;background:var(--red);color:#fff;border-radius:12px 12px 2px 12px}
+.msg.assistant{align-self:flex-start;background:var(--bg);border:1px solid var(--bg4);border-radius:12px 12px 12px 2px}
+.msg.assistant p:first-child{margin-top:0}
+.msg.assistant p:last-child{margin-bottom:0}
+.msg.assistant h1,.msg.assistant h2,.msg.assistant h3{color:var(--white);margin:8px 0 4px}
+.msg.assistant ul,.msg.assistant ol{margin:6px 0 6px 22px}
+.msg.assistant code{background:var(--bg3);padding:2px 6px;border-radius:3px;font-size:12px;color:var(--red3)}
+.msg.assistant pre{background:var(--bg3);padding:10px;border-radius:6px;overflow-x:auto;margin:8px 0}
+.chat-input-bar{border-top:1px solid var(--bg3);padding:12px;display:flex;gap:8px;background:var(--bg2)}
+.chat-input-bar input{flex:1}
+
+/* ── GAME LIST / ROSTER ─────────────────────── */
+.game-list,.list{display:flex;flex-direction:column;gap:8px;max-height:500px;overflow-y:auto}
+.game-item{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:12px;align-items:center;background:var(--bg);border:1px solid var(--bg4);border-radius:8px;padding:10px 14px;font-size:13px;transition:border-color .15s}
+.game-item:hover{border-color:var(--gray2)}
+.badge{padding:3px 9px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.5px;text-align:center;min-width:32px}
+.badge.w{background:rgba(39,174,96,.15);color:var(--green);border:1px solid rgba(39,174,96,.4)}
+.badge.l{background:rgba(231,76,60,.15);color:var(--red3);border:1px solid rgba(231,76,60,.4)}
+.badge.t{background:rgba(230,126,34,.15);color:var(--amber);border:1px solid rgba(230,126,34,.4)}
+.game-meta{color:var(--gray);font-size:12px}
+.game-score{font-weight:600;font-variant-numeric:tabular-nums}
+.icon-action{background:transparent;color:var(--gray);font-size:14px;padding:4px 6px;border-radius:4px;line-height:1}
+.icon-action:hover{color:var(--red3);background:var(--bg3)}
+
+.empty{text-align:center;color:var(--gray);font-size:13px;padding:40px 20px;background:var(--bg);border:1px dashed var(--bg4);border-radius:8px}
+
+/* ── PLAYER CARD ────────────────────────────── */
+.player-card{background:var(--bg);border:1px solid var(--bg4);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.player-head{display:flex;align-items:center;gap:10px}
+.jersey{width:36px;height:36px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+.player-info{flex:1}
+.player-name{font-weight:600;font-size:14px;color:var(--white)}
+.player-pos{font-size:12px;color:var(--gray)}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:11px}
+.stat-cell{background:var(--bg3);padding:6px 8px;border-radius:4px;text-align:center}
+.stat-cell .v{display:block;font-weight:600;color:var(--white);font-size:13px}
+.stat-cell .k{color:var(--gray);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── TABLES ─────────────────────────────────── */
+.table-wrap{overflow-x:auto;background:var(--bg);border:1px solid var(--bg4);border-radius:8px}
+table.data{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+table.data th,table.data td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--bg4)}
+table.data th{background:var(--bg3);color:var(--gray);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;position:sticky;top:0}
+table.data tr:hover td{background:var(--bg2)}
+table.data td.num{text-align:right;font-weight:500}
+table.data tr:last-child td{border-bottom:none}
+
+/* ── MODAL ──────────────────────────────────── */
+.modal-bg{position:fixed;inset:0;background:rgba(5,12,25,.85);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;animation:fadeIn .15s}
+.modal{background:var(--bg2);border:1px solid var(--bg4);border-radius:12px;padding:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow)}
+.modal h2{font-size:17px;margin-bottom:6px}
+.modal-text{color:var(--gray);font-size:13px;margin-bottom:16px;line-height:1.6}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+
+/* ── TOAST ──────────────────────────────────── */
+#toast-container{position:fixed;top:80px;right:20px;z-index:300;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--bg2);border:1px solid var(--bg4);border-left:3px solid var(--green);border-radius:7px;padding:10px 16px;font-size:13px;box-shadow:var(--shadow);animation:slideIn .2s;min-width:200px}
+.toast.error{border-left-color:var(--red2)}
+.toast.warn{border-left-color:var(--amber)}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:none;opacity:1}}
+
+/* ── TAGS / CHIPS ───────────────────────────── */
+.tag{background:var(--bg3);color:var(--text);padding:4px 10px;border-radius:20px;font-size:12px;display:inline-flex;align-items:center;gap:6px}
+.tag button{color:var(--gray);font-size:14px;line-height:1}
+.tag button:hover{color:var(--red3)}
+.tag-grid{display:flex;flex-wrap:wrap;gap:6px}
+
+/* ── LIBRARY ITEMS ──────────────────────────── */
+.lib-item{background:var(--bg);border:1px solid var(--bg4);border-radius:8px;padding:14px;cursor:pointer;transition:all .15s}
+.lib-item:hover{border-color:var(--gray2);transform:translateY(-1px)}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:12px}
+.lib-title{font-weight:600;color:var(--white);font-size:14px;margin-bottom:4px}
+.lib-meta{color:var(--gray);font-size:11px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
+.lib-preview{color:var(--gray);font-size:12px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.lib-actions{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--bg4)}
+
+/* ── CHARTS ─────────────────────────────────── */
+.chart-wrap{position:relative;height:240px}
+
+/* ── LINEUP ─────────────────────────────────── */
+.lineup-row{display:grid;grid-template-columns:32px 1fr auto;gap:8px;align-items:center;padding:8px 12px;background:var(--bg);border:1px solid var(--bg4);border-radius:6px;margin-bottom:6px;cursor:move}
+.lineup-row.dragging{opacity:.4}
+.lineup-row .ord{color:var(--red3);font-weight:700}
+.lineup-row select{padding:4px 8px;font-size:12px;width:auto}
+
+/* ── SCROLLBARS ─────────────────────────────── */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--gray2)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚾ Softball <span>Coach</span></div>
+  <div class="team-name" id="header-team">Setting up…</div>
+  <div class="header-actions">
+    <button class="icon-btn" onclick="openSettings()" title="Settings">⚙ Settings</button>
+    <button class="icon-btn" id="keyBtn" onclick="openKeyModal()" title="API Key">🔑 Set Key</button>
+  </div>
+</header>
+
+<nav>
+  <button class="active" data-tab="dashboard"><span class="nav-icon">📊</span>Dashboard</button>
+  <button data-tab="practice"><span class="nav-icon">📋</span>Practice</button>
+  <button data-tab="coach"><span class="nav-icon">💬</span>Coach AI</button>
+  <button data-tab="season"><span class="nav-icon">🏆</span>Season</button>
+  <button data-tab="tournaments"><span class="nav-icon">🥇</span>Tournaments</button>
+  <button data-tab="fundraising"><span class="nav-icon">💰</span>Fundraising</button>
+  <button data-tab="roster"><span class="nav-icon">👥</span>Roster</button>
+  <button data-tab="library"><span class="nav-icon">📚</span>Library</button>
+</nav>
+
+<main>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║              DASHBOARD                   ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="tab active" id="tab-dashboard">
+  <h1>Team dashboard</h1>
+  <p class="subtitle" id="dash-sub">Season at a glance</p>
+
+  <div class="dash-grid">
+    <div class="stat-tile accent">
+      <div class="num" id="d-record">0–0</div>
+      <div class="lbl">Record</div>
+      <div class="sub" id="d-record-sub">No games yet</div>
+    </div>
+    <div class="stat-tile">
+      <div class="num" id="d-winpct">—</div>
+      <div class="lbl">Win %</div>
+      <div class="sub" id="d-winpct-sub">Add a game to start</div>
+    </div>
+    <div class="stat-tile">
+      <div class="num" id="d-streak">—</div>
+      <div class="lbl">Streak</div>
+      <div class="sub" id="d-streak-sub">—</div>
+    </div>
+    <div class="stat-tile">
+      <div class="num" id="d-rundiff">—</div>
+      <div class="lbl">Run differential</div>
+      <div class="sub" id="d-rundiff-sub">—</div>
+    </div>
+    <div class="stat-tile">
+      <div class="num" id="d-roster">0</div>
+      <div class="lbl">Roster</div>
+      <div class="sub" id="d-roster-sub">—</div>
+    </div>
+    <div class="stat-tile">
+      <div class="num" id="d-plans">0</div>
+      <div class="lbl">Practice plans</div>
+      <div class="sub" id="d-plans-sub">Saved</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Recent games</h3>
+      <button class="icon-btn btn-sm" onclick="goTab('season')">View all →</button>
+    </div>
+    <div class="game-list" id="dash-games"><div class="empty">No games yet. Head to Season to log one.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Most recent practice plan</h3>
+      <button class="icon-btn btn-sm" onclick="goTab('practice')">Generator →</button>
+    </div>
+    <div id="dash-plan"><div class="empty">No saved plans yet.</div></div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║              PRACTICE                    ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="tab" id="tab-practice">
+  <h1>Practice plans</h1>
+  <p class="subtitle">Dual-version output — coaches get assignments & cues, players get a pre-practice prep doc with visual aids</p>
+
+  <div class="card">
+    <h3>New practice plan</h3>
+    <div class="form-row c2">
+      <div>
+        <label>Age group</label>
+        <select id="pp-age"><option>8U</option><option>10U</option><option>12U</option><option>14U</option><option>16U</option><option>18U</option></select>
+      </div>
+      <div>
+        <label>Duration</label>
+        <select id="pp-dur"><option>60 minutes</option><option selected>90 minutes</option><option>2 hours</option><option>2.5 hours</option></select>
+      </div>
+    </div>
+    <div class="form-row c2">
+      <div>
+        <label>Player count</label>
+        <select id="pp-players"><option>6–8</option><option selected>9–12</option><option>13–15</option></select>
+      </div>
+      <div>
+        <label>Focus area</label>
+        <select id="pp-focus">
+          <option>Hitting mechanics</option><option>Pitching fundamentals</option>
+          <option>Fielding & defense</option><option>Baserunning</option>
+          <option>Catching</option><option>Game situations</option>
+          <option>Conditioning & athleticism</option><option>Pre-tournament prep</option>
+          <option>Full team practice</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Assistant coaches (comma-separated)</label>
+      <input type="text" id="pp-coaches" placeholder="e.g. Coach Mike, Coach Sarah — leave blank if you're solo">
+    </div>
+    <div class="form-group">
+      <label>Additional context (optional)</label>
+      <textarea id="pp-notes" rows="2" placeholder="e.g. Tournament Saturday, work on slap hitting, indoor only, 3 specific players struggling with X..."></textarea>
+    </div>
+    <button class="btn" id="pp-btn" onclick="genPractice()">⚡ Generate dual plan</button>
+  </div>
+
+  <div class="card" id="pp-out-card" style="display:none">
+    <div class="card-head">
+      <h3 id="pp-out-title">Practice plan</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <div style="display:flex;background:var(--bg);border:1px solid var(--bg4);border-radius:7px;overflow:hidden">
+          <button class="view-btn active" data-view="coach" onclick="switchPlanView('coach')" style="padding:7px 14px;font-size:12px;font-weight:500;border-right:1px solid var(--bg4);background:var(--red);color:#fff">📋 Coach</button>
+          <button class="view-btn" data-view="player" onclick="switchPlanView('player')" style="padding:7px 14px;font-size:12px;font-weight:500;color:var(--gray)">🥎 Player</button>
+        </div>
+        <button class="icon-btn btn-sm" onclick="savePlan()">💾 Save</button>
+        <button class="icon-btn btn-sm" onclick="copyPlan()">📋 Copy</button>
+        <button class="icon-btn btn-sm" onclick="printPlan()">🖨 Print</button>
+      </div>
+    </div>
+    <div class="output" id="pp-out-coach"></div>
+    <div class="output" id="pp-out-player" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Saved plans (<span id="pp-count">0</span>)</h3></div>
+    <div class="lib-grid" id="pp-library"></div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║              COACH AI                    ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="tab" id="tab-coach">
+  <h1>Coach AI</h1>
+  <p class="subtitle">Ask anything — mechanics, drills, strategy, parent dynamics, player development</p>
+
+  <div class="chat-layout">
+    <div class="chat-sidebar">
+      <button class="btn btn-sm" onclick="newThread()" style="margin-bottom:6px">+ New chat</button>
+      <div id="thread-list"></div>
+    </div>
+    <div class="chat-main">
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <div class="chat-input-bar">
+        <input type="text" id="chat-input" placeholder="Ask a coaching question..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="btn" id="chat-btn" onclick="sendChat()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║              SEASON                      ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="tab" id="tab-season">
+  <h1>Season tracker</h1>
+  <p class="subtitle">Game results, run differentials, and visual trends</p>
+
+  <div class="dash-grid">
+    <div class="stat-tile"><div class="num" id="s-w">0</div><div class="lbl">Wins</div></div>
+    <div class="stat-tile"><div class="num" id="s-l">0</div><div class="lbl">Losses</div></div>
+    <div class="stat-tile"><div class="num" id="s-t">0</div><div class="lbl">Ties</div></div>
+    <div class="stat-tile"><div class="num" id="s-rs">0</div><div class="lbl">Runs scored</div></div>
+    <div class="stat-tile"><div class="num" id="s-ra">0</div><div class="lbl">Runs allowed</div></div>
+    <div class="stat-tile"><div class="num" id="s-avg">.000</div><div class="lbl">Team AVG</div></div>
+  </div>
+
+  <div class="card">
+    <h3>Win/loss trend</h3>
+    <div class="chart-wrap"><canvas id="chart-record"></canvas></div>
+  </div>
+
+  <div class="card">
+    <h3>Add game result</h3>
+    <div class="form-row c4">
+      <div><label>Date</label><input type="date" id="g-date"></div>
+      <div><label>Opponent</label><input type="text" id="g-opp" placeholder="Team name"></div>
+      <div><label>Location</label><select id="g-loc"><option>Home</option><option>Away</option><option>Neutral</option></select></div>
+      <div><label>Result</label><select id="g-res"><option value="W">Win</option><option value="L">Loss</option><option value="T">Tie</option></select></div>
+    </div>
+    <div class="form-row c4">
+      <div><label>Our score</label><input type="number" id="g-us" min="0" placeholder="0"></div>
+      <div><label>Their score</label><input type="number" id="g-them" min="0" placeholder="0"></div>
+      <div><label>Type</label><select id="g-type"><option>Regular</option><option>Tournament</option><option>Scrimmage</option><option>Showcase</option></select></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn" onclick="addGame()" style="width:100%">+ Add game</button></div>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <input type="text" id="g-notes" placeholder="Standout moments, weather, key plays...">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Game log (<span id="game-count">0</span>)</h3></div>
+    <div class="game-list" id="game-list"><div class="empty">No games logged yet.</div></div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║              TOURNAMENTS                 ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="tab" id="tab-tournaments">
+  <h1>Tournaments</h1>
+  <p class="subtitle">Plan tournament weekends — schedule, logistics, and dual coach/parent itineraries</p>
+
+  <div class="card">
+    <h3>New tournament</h3>
+    <div class="form-row c2">
+      <div><label>Tournament name</label><input type="text" id="t-name" placeholder="e.g. Spring Classic 2026"></div>
+      <div><label>Location / venue</label><input type="text" id="t-loc" placeholder="e.g. Round Rock Sports Complex"></div>
+    </div>
+    <div class="form-row c3">
+      <div><label>Start date</label><input type="date" id="t-start"></div>
+      <div><label>End date</label><input type="date" id="t-end"></div>
+      <div><label>Format</label><select id="t-format">
+        <option>Pool play + bracket</option>
+        <option>Round robin</option>
+        <option>Single elimination</option>
+        <option>Double elimination</option>
+        <option>Pool play only</option>
+        <option>Showcase</option>
+      </select></div>
+    </div>
+    <div class="form-row c2">
+      <div><label>Primary uniform</label><input type="text" id="t-uni1" placeholder="e.g. Red jersey, white pants, red socks"></div>
+      <div><label>Alternate uniform</label><input type="text" id="t-uni2" placeholder="e.g. White jersey, gray pants, red socks"></div>
+    </div>
+    <div class="form-row c2">
+      <div><label>Parking & gate info</label><input type="text" id="t-parking" placeholder="e.g. $10/day gate fee, parking off Hwy 79"></div>
+      <div><label>Food / meal plan</label><input type="text" id="t-food" placeholder="e.g. Team lunch at Pluckers between games 2 and 3"></div>
+    </div>
+    <div class="form-group">
+      <label>General notes (weather, contingencies, special items)</label>
+      <textarea id="t-notes" rows="2" placeholder="e.g. Hot weekend — extra ice in cooler. Coach Sarah out Sunday morning, Coach Mike has lineup card..."></textarea>
+    </div>
+
+    <h3 style="margin:18px 0 10px">Game schedule</h3>
+    <div class="table-wrap" style="margin-bottom:10px">
+      <table class="data">
+        <thead><tr><th>Day</th><th>#</th><th>Game time</th><th>Arrive by</th><th>Opponent</th><th>Field</th><th>Uniform</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="t-games"></tbody>
+      </table>
+    </div>
+    <button class="icon-btn btn-sm" onclick="addTournGame()">+ Add game</button>
+
+    <div style="margin-top:18px">
+      <button class="btn" id="t-btn" onclick="saveTournament()">💾 Save & generate itinerary</button>
+    </div>
+  </div>
+
+  <div class="card" id="t-out-card" style="display:none">
+    <div class="card-head">
+      <h3 id="t-out-title">Tournament itinerary</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <div style="display:flex;background:var(--bg);border:1px solid var(--bg4);border-radius:7px;overflow:hidden">
+          <button class="tview-btn" data-tview="coach" onclick="switchTournView('coach')" style="padding:7px 14px;font-size:12px;font-weight:500;border-right:1px solid var(--bg4);background:var(--red);color:#fff">📋 Coach</button>
+          <button class="tview-btn" data-tview="parent" onclick="switchTournView('parent')" style="padding:7px 14px;font-size:12px;font-weight:500;color:var(--gray);background:transparent">👨‍👩‍👧 Parent/Player</button>
+        </div>
+        <button class="icon-btn btn-sm" onclick="copyTourn()">📋 Copy</button>
+        <button class="icon-btn btn-sm" onclick="printTourn()">🖨 Print</button>
+      </div>
+    </div>
+    <div class="output" id="t-out-coach"></div>
+    <div class="output" id="t-out-parent" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Saved tournaments (<span id="t-count">0</span>)</h3></div>
+    <div class="lib-grid" id="t-library"></div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║              FUNDRAISING                 ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="tab" id="tab-fundraising">
+  <h1>Fundraising</h1>
+  <p class="subtitle">Plan fundraisers with dual coordinator/family plans, then track contributions and tasks</p>
+
+  <div class="dash-grid">
+    <div class="stat-tile accent"><div class="num" id="f-raised">$0</div><div class="lbl">Total raised</div><div class="sub" id="f-raised-sub">No fundraisers yet</div></div>
+    <div class="stat-tile"><div class="num" id="f-active">0</div><div class="lbl">Active</div><div class="sub" id="f-active-sub">None active</div></div>
+    <div class="stat-tile"><div class="num" id="f-pct">—</div><div class="lbl">Toward goal</div><div class="sub" id="f-pct-sub">—</div></div>
+    <div class="stat-tile"><div class="num" id="f-top">—</div><div class="lbl">Top contributor</div><div class="sub" id="f-top-sub">—</div></div>
+  </div>
+
+  <div class="card">
+    <h3>New fundraiser</h3>
+    <div class="form-row c2">
+      <div><label>Name</label><input type="text" id="f-name" placeholder="e.g. Tournament Pizza Night"></div>
+      <div><label>Type</label><select id="f-type">
+        <option>Restaurant night</option>
+        <option>Car wash</option>
+        <option>Raffle / drawing</option>
+        <option>Product sale</option>
+        <option>Sponsorship drive</option>
+        <option>Concessions</option>
+        <option>Spirit night</option>
+        <option>Crowdfunding / GoFundMe</option>
+        <option>Tournament hosting</option>
+        <option>Auction</option>
+        <option>Other</option>
+      </select></div>
+    </div>
+    <div class="form-row c3">
+      <div><label>Goal ($)</label><input type="number" id="f-goal-amt" min="0" step="50" placeholder="2500"></div>
+      <div><label>Start date</label><input type="date" id="f-start"></div>
+      <div><label>End date</label><input type="date" id="f-end"></div>
+    </div>
+    <div class="form-row c2">
+      <div><label>Coordinator(s)</label><input type="text" id="f-coord" placeholder="e.g. Coach Mike, Mrs. Jones"></div>
+      <div><label>Per-player goal ($, optional)</label><input type="number" id="f-perplayer" min="0" step="10" placeholder="100"></div>
+    </div>
+    <div class="form-group">
+      <label>Location / venue (optional)</label>
+      <input type="text" id="f-loc" placeholder="e.g. Pluckers on I-35">
+    </div>
+    <div class="form-group">
+      <label>Description / details</label>
+      <textarea id="f-desc" rows="3" placeholder="What is this fundraiser, what's the team raising for, any sponsor or vendor relationships, special context..."></textarea>
+    </div>
+    <button class="btn" id="f-btn" onclick="saveFundraiser()">⚡ Create & generate plans</button>
+  </div>
+
+  <div class="card" id="f-out-card" style="display:none">
+    <div class="card-head">
+      <h3 id="f-out-title">Fundraiser plans</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <div style="display:flex;background:var(--bg);border:1px solid var(--bg4);border-radius:7px;overflow:hidden">
+          <button class="fview-btn" data-fview="coord" onclick="switchFundView('coord')" style="padding:7px 14px;font-size:12px;font-weight:500;border-right:1px solid var(--bg4);background:var(--red);color:#fff">📋 Coordinator</button>
+          <button class="fview-btn" data-fview="family" onclick="switchFundView('family')" style="padding:7px 14px;font-size:12px;font-weight:500;color:var(--gray);background:transparent">👨‍👩‍👧 Family</button>
+        </div>
+        <button class="icon-btn btn-sm" onclick="copyFund()">📋 Copy</button>
+        <button class="icon-btn btn-sm" onclick="printFund()">🖨 Print</button>
+      </div>
+    </div>
+    <div class="output" id="f-out-coord"></div>
+    <div class="output" id="f-out-family" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Fundraisers (<span id="f-count">0</span>)</h3></div>
+    <div class="lib-grid" id="f-library"></div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║              ROSTER                      ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="tab" id="tab-roster">
+  <h1>Roster</h1>
+  <p class="subtitle">Players, positions, season stats, and development notes</p>
+
+  <div class="card">
+    <h3>Add player</h3>
+    <div class="form-row c4">
+      <div><label>Name</label><input type="text" id="p-name" placeholder="First Last"></div>
+      <div><label>Jersey #</label><input type="text" id="p-jersey" placeholder="21"></div>
+      <div><label>Primary pos</label><select id="p-pos"><option>P</option><option>C</option><option>1B</option><option>2B</option><option>3B</option><option>SS</option><option>LF</option><option>CF</option><option>RF</option><option>UTIL</option></select></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn" onclick="addPlayer()" style="width:100%">+ Add player</button></div>
+    </div>
+    <div class="form-row c2">
+      <div><label>Bats</label><select id="p-bats"><option>R</option><option>L</option><option>S</option></select></div>
+      <div><label>Throws</label><select id="p-throws"><option>R</option><option>L</option></select></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Players (<span id="p-count">0</span>)</h3></div>
+    <div class="lib-grid" id="roster-grid"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Season batting stats</h3></div>
+    <div class="table-wrap">
+      <table class="data" id="stats-table">
+        <thead><tr><th>#</th><th>Player</th><th>Pos</th><th>G</th><th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>R</th><th>BB</th><th>K</th><th>SB</th><th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th></tr></thead>
+        <tbody id="stats-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║              LIBRARY                     ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="tab" id="tab-library">
+  <h1>Drill & skill library</h1>
+  <p class="subtitle">Research a topic and save the breakdown for later</p>
+
+  <div class="card">
+    <h3>Research a skill</h3>
+    <div class="form-row c3">
+      <div><label>Age group</label><select id="sk-age"><option>8U</option><option>10U</option><option>12U</option><option>14U</option><option>16U</option><option>18U</option></select></div>
+      <div><label>Skill level</label><select id="sk-level"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div>
+      <div><label>Category</label><select id="sk-cat"><option>Hitting</option><option>Pitching</option><option>Fielding</option><option>Catching</option><option>Baserunning</option><option>Mental game</option><option>Conditioning</option><option>Other</option></select></div>
+    </div>
+    <div class="form-group">
+      <label>Topic</label>
+      <input type="text" id="sk-topic" placeholder="e.g. drop ball grip, slap hitting, double-play turn, framing pitches...">
+    </div>
+    <button class="btn" id="sk-btn" onclick="researchSkill()">🔍 Research</button>
+  </div>
+
+  <div class="card" id="sk-out-card" style="display:none">
+    <div class="card-head">
+      <h3 id="sk-out-title">Research</h3>
+      <div style="display:flex;gap:6px">
+        <button class="icon-btn btn-sm" onclick="saveResearch()">💾 Save to library</button>
+      </div>
+    </div>
+    <div class="output" id="sk-out"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>Saved (<span id="lib-count">0</span>)</h3>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="text" id="lib-search" placeholder="Search..." style="width:180px;padding:6px 10px;font-size:12px" oninput="renderLibrary()">
+        <select id="lib-filter" onchange="renderLibrary()" style="width:auto;padding:6px 10px;font-size:12px">
+          <option value="">All categories</option><option>Hitting</option><option>Pitching</option><option>Fielding</option><option>Catching</option><option>Baserunning</option><option>Mental game</option><option>Conditioning</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="lib-grid" id="lib-grid"></div>
+  </div>
+</div>
+
+</main>
+
+<!-- ── MODALS ─────────────────────────────────── -->
+<div class="modal-bg" id="modal-key" style="display:none">
+  <div class="modal">
+    <h2>Anthropic API key</h2>
+    <p class="modal-text">Stored in your browser's local storage so you don't have to re-enter it. Never sent anywhere except directly to api.anthropic.com. Get one at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.</p>
+    <input type="password" id="keyInput" placeholder="sk-ant-..." autocomplete="off">
+    <label style="display:flex;align-items:center;gap:8px;margin-top:12px;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)">
+      <input type="checkbox" id="keyRemember" style="width:auto" checked> Remember in this browser
+    </label>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-key')">Cancel</button>
+      <button class="btn" onclick="saveKey()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-settings" style="display:none">
+  <div class="modal">
+    <h2>Settings</h2>
+    <p class="modal-text">Team info, defaults, and data management.</p>
+    <div class="form-row c2">
+      <div><label>Team name</label><input type="text" id="set-team" placeholder="My Team"></div>
+      <div><label>Default age group</label><select id="set-age"><option>8U</option><option>10U</option><option>12U</option><option>14U</option><option>16U</option><option>18U</option></select></div>
+    </div>
+    <div class="form-group">
+      <label>Season label</label>
+      <input type="text" id="set-season" placeholder="Spring 2026">
+    </div>
+    <hr style="border:none;border-top:1px solid var(--bg4);margin:18px 0">
+    <h3 style="margin-bottom:8px">Data</h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="icon-btn btn-sm" onclick="exportData()">⬇ Export JSON</button>
+      <button class="icon-btn btn-sm" onclick="document.getElementById('importFile').click()">⬆ Import JSON</button>
+      <input type="file" id="importFile" accept=".json" hidden onchange="importData(this.files[0])">
+      <button class="icon-btn btn-sm btn-danger" onclick="resetAll()">🗑 Reset all data</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-settings')">Cancel</button>
+      <button class="btn" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-view" style="display:none">
+  <div class="modal" style="max-width:720px">
+    <h2 id="modal-view-title">Item</h2>
+    <p class="modal-text" id="modal-view-meta"></p>
+    <div class="output" id="modal-view-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-view')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-game" style="display:none">
+  <div class="modal" style="max-width:780px">
+    <h2 id="modal-game-title">Game stats</h2>
+    <p class="modal-text">Enter individual batting lines for this game.</p>
+    <div id="modal-game-body" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-game')">Cancel</button>
+      <button class="btn" onclick="saveGameStats()">Save stats</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-player" style="display:none">
+  <div class="modal" style="max-width:600px">
+    <h2 id="modal-player-title">Player</h2>
+    <p class="modal-text" id="modal-player-meta"></p>
+    <div id="modal-player-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="deletePlayer()">Delete player</button>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="closeModal('modal-player')">Close</button>
+        <button class="btn" onclick="saveplayerNotes()">Save notes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// STORAGE — localStorage with graceful in-memory fallback
+// ═══════════════════════════════════════════════════════════
+const KEY = 'softball-coach-v2';
+let store = {
+  apiKey: '',
+  rememberKey: true,
+  settings: { teamName: 'My Team', defaultAge: '10U', season: 'Spring 2026' },
+  players: [],     // {id, name, jersey, pos, bats, throws, notes}
+  games: [],       // {id, date, opp, loc, type, res, us, them, notes, stats:{playerId:{ab,h,d,t,hr,rbi,r,bb,k,sb}}}
+  plans: [],       // {id, title, content, age, dur, focus, created}
+  research: [],    // {id, topic, category, age, level, content, created}
+  threads: [],     // {id, title, messages:[{role,content}], created}
+  activeThreadId: null,
+};
+
+let _memoryOnly = false;
+function loadStore() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) Object.assign(store, JSON.parse(raw));
+  } catch(e) { _memoryOnly = true; console.warn('localStorage unavailable — running in session memory'); }
+}
+function saveStore() {
+  if (_memoryOnly) return;
+  try {
+    const toSave = {...store};
+    if (!store.rememberKey) toSave.apiKey = '';
+    localStorage.setItem(KEY, JSON.stringify(toSave));
+  } catch(e) { _memoryOnly = true; toast('Storage unavailable, changes won\'t persist','warn'); }
+}
+const uid = () => Math.random().toString(36).slice(2,10);
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+function toast(msg, kind='ok') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast' + (kind==='error'?' error':kind==='warn'?' warn':'');
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 2800);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODALS / TABS
+// ═══════════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).style.display='flex'; }
+function closeModal(id) { document.getElementById(id).style.display='none'; }
+function goTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelector(`nav button[data-tab="${name}"]`)?.classList.add('active');
+  if (name==='season') drawChart();
+}
+document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => goTab(b.dataset.tab)));
+
+// ═══════════════════════════════════════════════════════════
+// SETTINGS / KEY
+// ═══════════════════════════════════════════════════════════
+function openKeyModal() {
+  document.getElementById('keyInput').value = store.apiKey;
+  document.getElementById('keyRemember').checked = store.rememberKey;
+  openModal('modal-key');
+  document.getElementById('keyInput').focus();
+}
+function saveKey() {
+  const v = document.getElementById('keyInput').value.trim();
+  if (!v.startsWith('sk-')) { toast('That doesn\'t look like an Anthropic key','error'); return; }
+  store.apiKey = v;
+  store.rememberKey = document.getElementById('keyRemember').checked;
+  saveStore();
+  refreshKeyBtn();
+  closeModal('modal-key');
+  toast('API key saved');
+}
+function refreshKeyBtn() {
+  const b = document.getElementById('keyBtn');
+  if (store.apiKey) { b.textContent='✓ Key set'; b.classList.add('ok'); }
+  else { b.textContent='🔑 Set Key'; b.classList.remove('ok'); }
+}
+function openSettings() {
+  document.getElementById('set-team').value = store.settings.teamName;
+  document.getElementById('set-age').value = store.settings.defaultAge;
+  document.getElementById('set-season').value = store.settings.season;
+  openModal('modal-settings');
+}
+function saveSettings() {
+  store.settings.teamName = document.getElementById('set-team').value.trim() || 'My Team';
+  store.settings.defaultAge = document.getElementById('set-age').value;
+  store.settings.season = document.getElementById('set-season').value.trim() || '';
+  saveStore();
+  refreshHeader();
+  closeModal('modal-settings');
+  toast('Settings saved');
+}
+function refreshHeader() {
+  const t = document.getElementById('header-team');
+  t.textContent = store.settings.teamName + (store.settings.season ? ' · '+store.settings.season : '');
+  document.getElementById('dash-sub').textContent = store.settings.season ? `${store.settings.teamName} — ${store.settings.season}` : store.settings.teamName;
+}
+
+// ═══════════════════════════════════════════════════════════
+// EXPORT / IMPORT / RESET
+// ═══════════════════════════════════════════════════════════
+function exportData() {
+  const json = JSON.stringify(store, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `softball-coach-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  toast('Exported');
+}
+function importData(file) {
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!d.players || !d.games) throw new Error('Invalid file');
+      store = {...store, ...d};
+      saveStore();
+      renderAll();
+      toast('Imported successfully');
+      closeModal('modal-settings');
+    } catch(e) { toast('Import failed: '+e.message, 'error'); }
+  };
+  r.readAsText(file);
+}
+function resetAll() {
+  if (!confirm('Delete ALL data — players, games, plans, chats, library? This cannot be undone.')) return;
+  store = {
+    apiKey: store.apiKey, rememberKey: store.rememberKey,
+    settings: { teamName: 'My Team', defaultAge: '10U', season: 'Spring 2026' },
+    players: [], games: [], plans: [], research: [], threads: [], activeThreadId: null,
+  };
+  saveStore();
+  renderAll();
+  toast('All data reset','warn');
+  closeModal('modal-settings');
+}
+
+// ═══════════════════════════════════════════════════════════
+// CLAUDE API — streaming
+// ═══════════════════════════════════════════════════════════
+async function streamClaude({system, messages, onText, onDone, onError, max_tokens=2000}) {
+  if (!store.apiKey) { openKeyModal(); return; }
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': store.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens, system, messages, stream: true
+      })
+    });
+    if (!res.ok) {
+      const e = await res.json().catch(()=>({}));
+      throw new Error(e.error?.message || 'API error '+res.status);
+    }
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    let full = '';
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, {stream:true});
+      const lines = buf.split('\n');
+      buf = lines.pop() || '';
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (!data || data === '[DONE]') continue;
+        try {
+          const ev = JSON.parse(data);
+          if (ev.type === 'content_block_delta' && ev.delta?.text) {
+            full += ev.delta.text;
+            onText && onText(ev.delta.text, full);
+          }
+        } catch(e) {}
+      }
+    }
+    onDone && onDone(full);
+    return full;
+  } catch(err) {
+    onError && onError(err);
+    return null;
+  }
+}
+
+function md(text) {
+  try { return marked.parse(text || ''); } catch(e) { return text; }
+}
+
+// ═══════════════════════════════════════════════════════════
+// PRACTICE PLANNER — dual coach/player versions
+// ═══════════════════════════════════════════════════════════
+let _ppCoach = '', _ppPlayer = '', _ppMeta = {}, _ppView = 'coach';
+const PLAYER_MARKER = '---PLAYER-VERSION---';
+
+function switchPlanView(v) {
+  _ppView = v;
+  document.getElementById('pp-out-coach').style.display = v === 'coach' ? 'block' : 'none';
+  document.getElementById('pp-out-player').style.display = v === 'player' ? 'block' : 'none';
+  document.querySelectorAll('.view-btn').forEach(b => {
+    const active = b.dataset.view === v;
+    b.classList.toggle('active', active);
+    b.style.background = active ? 'var(--red)' : 'transparent';
+    b.style.color = active ? '#fff' : 'var(--gray)';
+  });
+}
+
+async function genPractice() {
+  if (!store.apiKey) { openKeyModal(); return; }
+  const age = document.getElementById('pp-age').value;
+  const dur = document.getElementById('pp-dur').value;
+  const players = document.getElementById('pp-players').value;
+  const focus = document.getElementById('pp-focus').value;
+  const coaches = document.getElementById('pp-coaches').value.trim();
+  const notes = document.getElementById('pp-notes').value.trim();
+  const card = document.getElementById('pp-out-card');
+  const coachEl = document.getElementById('pp-out-coach');
+  const playerEl = document.getElementById('pp-out-player');
+  const btn = document.getElementById('pp-btn');
+  card.style.display = 'block';
+  btn.disabled = true; btn.textContent = '⏳ Generating both versions...';
+  coachEl.innerHTML = '<span class="cursor"></span>';
+  playerEl.innerHTML = '';
+  switchPlanView('coach');
+  document.getElementById('pp-out-title').textContent = `${age} · ${focus} · ${dur}`;
+  _ppMeta = {age, dur, players, focus, coaches, notes};
+  _ppCoach = ''; _ppPlayer = '';
+
+  const coachList = coaches ? coaches.split(',').map(c => c.trim()).filter(Boolean) : [];
+  const coachLine = coachList.length
+    ? `Assistant coaches available: ${coachList.join(', ')} — assign each one to specific stations and rotations`
+    : `No assistant coaches — head coach runs all stations alone, design accordingly`;
+
+  const sys = `You are an experienced travel softball coach who creates practice plans in TWO synchronized versions: one for the COACHING STAFF and one for PLAYERS to review BEFORE practice.
+
+You will output BOTH versions in a single response, separated by EXACTLY this marker on its own line: ${PLAYER_MARKER}
+
+═══ COACH VERSION (before the marker) ═══
+Audience: Head coach + assistant coaches reviewing the night before practice.
+Format with markdown. Structure:
+# 📋 Coach Plan
+## Overview
+- Brief 2-3 sentence summary of the practice goals
+- Equipment needed (full list)
+- Pre-practice setup notes
+
+## Time Block 1: Warmup (X min)
+- **Coach assignment**: [name(s)] leads — what they do
+- **Drill/activity**: specific name and structure
+- **Reps/timing**: exact counts
+- **Coaching cues**: 2-3 specific cues to emphasize
+- **Watch for**: common errors to correct
+
+## Time Block 2: [Skill block name] (X min)
+[Same structure — when there are multiple stations, list each station with WHICH coach is assigned to it]
+
+## Time Block 3: Team segment (X min)
+[Situational play, scrimmage, or full-team work — coach roles assigned]
+
+## Time Block 4: Cool-down & team talk (X min)
+- Who leads stretching
+- Talking points for team meeting
+- What to reinforce based on today's focus
+
+## Coach takeaways
+- 3 key reinforcement points
+- What to follow up on next practice
+
+═══ PLAYER VERSION (after the marker) ═══
+Audience: Players (age-appropriate for ${age}) reviewing on their phone/tablet the night before practice.
+Tone: Direct, motivating, age-appropriate. Talk to the player.
+Format with markdown AND inline SVG diagrams for key drills.
+
+Structure:
+# 🥎 Practice Prep — Tomorrow's Workout
+## What we're working on
+- 1-2 sentence goal in player language
+
+## What to bring
+- Bulleted checklist (glove, bat, helmet, water, cleats, etc.)
+
+## How to mentally prep
+- 2-3 short bullets on focus mindset
+
+## The plan
+For each time block: brief player-perspective description, what to focus on, and for KEY drills include an SVG diagram.
+
+INLINE SVG DIAGRAM REQUIREMENTS — include 2-4 diagrams for the most important drills:
+- Use this exact wrapper: <svg viewBox="0 0 280 200" width="100%" style="max-width:340px;background:rgba(15,31,61,0.6);border-radius:8px;padding:8px;display:block;margin:8px 0">
+- Field outline strokes: white #ffffff
+- Player positions: filled circles, red #e74c3c, with white text labels
+- Cones/markers: filled triangles or circles, green #27ae60
+- Ball flight / movement: arrows in blue #3498db (use marker-end for arrowheads)
+- Defining arrow markers: include <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#3498db"/></marker></defs>
+- All text fill="#ffffff" font-size="11" font-family="sans-serif"
+- Keep diagrams READABLE — limit to ~6-10 elements each
+- Examples: field with positions, drill setup with cone placement, throwing rotation pattern
+
+For each drill with a diagram: include a short caption below the SVG explaining what the diagram shows.
+
+## Your focus today
+- 3-5 personal cues each player should keep in mind
+
+## After practice
+- Brief reflection prompt or stretching reminder
+
+KEEP THE PLAYER VERSION FRIENDLY AND ENERGIZING. Avoid coach-speak. Speak to a ${age} athlete.`;
+
+  const userPrompt = `Generate the dual-version practice plan now.
+
+Team: ${age} travel softball, ${players} players, ${dur} practice
+Focus: ${focus}
+${coachLine}
+${notes ? `Additional context: ${notes}` : ''}
+
+Remember: output the COACH version first, then the marker line "${PLAYER_MARKER}" on its own line, then the PLAYER version with inline SVG diagrams for key drills.`;
+
+  await streamClaude({
+    system: sys,
+    max_tokens: 6000,
+    messages: [{role:'user', content: userPrompt}],
+    onText: (_, full) => {
+      const idx = full.indexOf(PLAYER_MARKER);
+      let coach, player;
+      if (idx >= 0) {
+        coach = full.slice(0, idx).trim();
+        player = full.slice(idx + PLAYER_MARKER.length).trim();
+      } else {
+        coach = full;
+        player = '';
+      }
+      coachEl.innerHTML = md(coach) + (idx < 0 ? '<span class="cursor"></span>' : '');
+      playerEl.innerHTML = md(player) + (idx >= 0 ? '<span class="cursor"></span>' : '');
+    },
+    onDone: (full) => {
+      const idx = full.indexOf(PLAYER_MARKER);
+      if (idx >= 0) {
+        _ppCoach = full.slice(0, idx).trim();
+        _ppPlayer = full.slice(idx + PLAYER_MARKER.length).trim();
+      } else {
+        _ppCoach = full;
+        _ppPlayer = '';
+      }
+      coachEl.innerHTML = md(_ppCoach);
+      playerEl.innerHTML = _ppPlayer ? md(_ppPlayer) : '<div class="empty">Player version not generated — try regenerating.</div>';
+      btn.disabled = false; btn.textContent = '⚡ Generate dual plan';
+      toast('Both versions ready — toggle and save below');
+    },
+    onError: (e) => {
+      coachEl.innerHTML = '⚠ '+e.message; coachEl.className='output error';
+      btn.disabled = false; btn.textContent = '⚡ Generate dual plan';
+    }
+  });
+}
+
+function savePlan() {
+  if (!_ppCoach) { toast('Generate a plan first','warn'); return; }
+  const plan = {
+    id: uid(),
+    title: `${_ppMeta.age} · ${_ppMeta.focus}`,
+    coachContent: _ppCoach,
+    playerContent: _ppPlayer,
+    ...(_ppMeta),
+    created: Date.now()
+  };
+  store.plans.unshift(plan);
+  saveStore();
+  renderPracticeLibrary();
+  renderDashboard();
+  toast('Plan saved (both versions) to library');
+}
+function copyPlan() {
+  const txt = _ppView === 'player' ? _ppPlayer : _ppCoach;
+  if (!txt) return;
+  navigator.clipboard.writeText(txt).then(() => toast(`Copied ${_ppView} version`));
+}
+function printPlan() {
+  const txt = _ppView === 'player' ? _ppPlayer : _ppCoach;
+  if (!txt) return;
+  const label = _ppView === 'player' ? 'Player Prep' : 'Coach Plan';
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>${label}</title><style>body{font-family:sans-serif;max-width:780px;margin:30px auto;padding:20px;line-height:1.6;color:#222}h1,h2,h3{color:#0f1f3d}h3{color:#c0392b}svg{background:#0f1f3d!important;display:block;margin:10px 0;max-width:340px}svg text{fill:#fff!important}@media print{body{margin:0}}</style></head><body>${md(txt)}</body></html>`);
+  w.document.close(); w.print();
+}
+function viewPlan(id) {
+  const p = store.plans.find(x=>x.id===id);
+  if (!p) return;
+  document.getElementById('modal-view-title').textContent = p.title;
+  const meta = `${p.dur || ''} · ${p.players || ''} players · ${new Date(p.created).toLocaleDateString()}${p.coaches ? ' · Coaches: '+p.coaches : ''}`;
+  document.getElementById('modal-view-meta').textContent = meta;
+  // Build modal body with toggle if dual-version
+  const body = document.getElementById('modal-view-body');
+  const coachContent = p.coachContent || p.content || '';
+  const playerContent = p.playerContent || '';
+  if (playerContent) {
+    body.innerHTML = `
+      <div style="display:flex;gap:0;background:var(--bg);border:1px solid var(--bg4);border-radius:7px;overflow:hidden;margin-bottom:14px;width:fit-content">
+        <button class="mv-btn" data-mv="coach" onclick="switchModalView('coach')" style="padding:7px 14px;font-size:12px;font-weight:500;border-right:1px solid var(--bg4);background:var(--red);color:#fff">📋 Coach</button>
+        <button class="mv-btn" data-mv="player" onclick="switchModalView('player')" style="padding:7px 14px;font-size:12px;font-weight:500;color:var(--gray);background:transparent">🥎 Player</button>
+      </div>
+      <div id="mv-coach">${md(coachContent)}</div>
+      <div id="mv-player" style="display:none">${md(playerContent)}</div>`;
+  } else {
+    body.innerHTML = md(coachContent);
+  }
+  openModal('modal-view');
+}
+function switchModalView(v) {
+  document.getElementById('mv-coach').style.display = v === 'coach' ? 'block' : 'none';
+  document.getElementById('mv-player').style.display = v === 'player' ? 'block' : 'none';
+  document.querySelectorAll('.mv-btn').forEach(b => {
+    const active = b.dataset.mv === v;
+    b.style.background = active ? 'var(--red)' : 'transparent';
+    b.style.color = active ? '#fff' : 'var(--gray)';
+  });
+}
+function deletePlan(id, e) {
+  e?.stopPropagation();
+  if (!confirm('Delete this plan?')) return;
+  store.plans = store.plans.filter(p=>p.id!==id);
+  saveStore(); renderPracticeLibrary(); renderDashboard();
+  toast('Plan deleted','warn');
+}
+function renderPracticeLibrary() {
+  const grid = document.getElementById('pp-library');
+  document.getElementById('pp-count').textContent = store.plans.length;
+  if (!store.plans.length) { grid.innerHTML = '<div class="empty" style="grid-column:1/-1">No saved plans yet — generate one above.</div>'; return; }
+  grid.innerHTML = store.plans.map(p => {
+    const preview = p.coachContent || p.content || '';
+    const hasDual = !!p.playerContent;
+    return `
+    <div class="lib-item" onclick="viewPlan('${p.id}')">
+      <div class="lib-title">${esc(p.title)}${hasDual ? ' <span style="background:var(--red);color:#fff;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:500;letter-spacing:.3px">DUAL</span>' : ''}</div>
+      <div class="lib-meta">${esc(p.dur || '')} · ${new Date(p.created).toLocaleDateString()}${p.coaches ? ' · '+esc(p.coaches.split(',').length+' coaches') : ''}</div>
+      <div class="lib-preview">${esc(preview.slice(0,180))}...</div>
+      <div class="lib-actions">
+        <button class="icon-btn btn-sm" onclick="event.stopPropagation();viewPlan('${p.id}')">View</button>
+        <button class="icon-btn btn-sm btn-danger" onclick="deletePlan('${p.id}',event)">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// COACH AI CHAT
+// ═══════════════════════════════════════════════════════════
+const COACH_SYS = `You are a knowledgeable travel softball coach and player development expert with deep experience in youth athletics.
+You give practical, specific, actionable advice. You understand: pitching mechanics (windmill delivery, drop ball, change-up grips), hitting mechanics (load, separation, contact), fielding fundamentals, baserunning strategy, catching, game situations, parent dynamics, mental game, and youth athlete psychology.
+Format with markdown — headings, bullets, numbered steps when appropriate. When asked about a skill, include drills and coaching cues. Keep responses focused — depth over breadth.`;
+
+function newThread() {
+  const t = { id: uid(), title: 'New chat', messages: [], created: Date.now() };
+  store.threads.unshift(t);
+  store.activeThreadId = t.id;
+  saveStore();
+  renderThreads();
+  renderActiveThread();
+  document.getElementById('chat-input').focus();
+}
+function selectThread(id) {
+  store.activeThreadId = id;
+  saveStore();
+  renderThreads();
+  renderActiveThread();
+}
+function deleteThread(id, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this conversation?')) return;
+  store.threads = store.threads.filter(t=>t.id!==id);
+  if (store.activeThreadId === id) store.activeThreadId = store.threads[0]?.id || null;
+  saveStore();
+  renderThreads();
+  renderActiveThread();
+}
+function renderThreads() {
+  const c = document.getElementById('thread-list');
+  if (!store.threads.length) { c.innerHTML = '<div style="color:var(--gray);font-size:12px;padding:8px;text-align:center">No chats yet</div>'; return; }
+  c.innerHTML = store.threads.map(t => `
+    <div class="chat-thread ${t.id===store.activeThreadId?'active':''}" onclick="selectThread('${t.id}')">
+      <span class="ttitle">${esc(t.title)}</span>
+      <button class="del" onclick="deleteThread('${t.id}',event)" title="Delete">×</button>
+    </div>`).join('');
+}
+function renderActiveThread() {
+  const c = document.getElementById('chat-msgs');
+  const t = store.threads.find(x=>x.id===store.activeThreadId);
+  if (!t) { c.innerHTML = '<div class="msg assistant">Hi Coach! Click <strong>+ New chat</strong> to start a conversation. Ask me about mechanics, drills, game strategy, player development — anything.</div>'; return; }
+  if (!t.messages.length) { c.innerHTML = '<div class="msg assistant">What can I help you with, Coach?</div>'; return; }
+  c.innerHTML = t.messages.map(m => `<div class="msg ${m.role}">${m.role==='assistant' ? md(m.content) : esc(m.content)}</div>`).join('');
+  c.scrollTop = c.scrollHeight;
+}
+async function sendChat() {
+  if (!store.apiKey) { openKeyModal(); return; }
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  let t = store.threads.find(x=>x.id===store.activeThreadId);
+  if (!t) { newThread(); t = store.threads[0]; }
+  input.value = '';
+  document.getElementById('chat-btn').disabled = true;
+
+  t.messages.push({role:'user', content: text});
+  if (t.title === 'New chat') { t.title = text.slice(0,40) + (text.length>40?'...':''); renderThreads(); }
+  renderActiveThread();
+
+  const c = document.getElementById('chat-msgs');
+  const ph = document.createElement('div');
+  ph.className = 'msg assistant';
+  ph.innerHTML = '<span class="cursor"></span>';
+  c.appendChild(ph);
+  c.scrollTop = c.scrollHeight;
+
+  await streamClaude({
+    system: COACH_SYS,
+    messages: t.messages.map(m=>({role:m.role,content:m.content})),
+    max_tokens: 1500,
+    onText: (_, full) => { ph.innerHTML = md(full) + '<span class="cursor"></span>'; c.scrollTop = c.scrollHeight; },
+    onDone: (full) => {
+      ph.innerHTML = md(full);
+      t.messages.push({role:'assistant', content: full});
+      saveStore();
+      document.getElementById('chat-btn').disabled = false;
+      input.focus();
+    },
+    onError: (e) => {
+      ph.innerHTML = '⚠ '+e.message;
+      document.getElementById('chat-btn').disabled = false;
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// SEASON / GAMES
+// ═══════════════════════════════════════════════════════════
+function addGame() {
+  const opp = document.getElementById('g-opp').value.trim();
+  if (!opp) { toast('Enter an opponent','warn'); return; }
+  const us = parseInt(document.getElementById('g-us').value) || 0;
+  const them = parseInt(document.getElementById('g-them').value) || 0;
+  let res = document.getElementById('g-res').value;
+  if (us > them) res = 'W'; else if (us < them) res = 'L'; else if (us===them && (us||them)) res = 'T';
+
+  const g = {
+    id: uid(),
+    date: document.getElementById('g-date').value || new Date().toISOString().slice(0,10),
+    opp, loc: document.getElementById('g-loc').value,
+    type: document.getElementById('g-type').value,
+    res, us, them,
+    notes: document.getElementById('g-notes').value.trim(),
+    stats: {}
+  };
+  store.games.unshift(g);
+  saveStore();
+  ['g-opp','g-us','g-them','g-notes'].forEach(id => document.getElementById(id).value='');
+  renderGames();
+  renderDashboard();
+  drawChart();
+  toast('Game added — click on it to log player stats');
+}
+function deleteGame(id, e) {
+  e?.stopPropagation();
+  if (!confirm('Delete this game?')) return;
+  store.games = store.games.filter(g=>g.id!==id);
+  saveStore();
+  renderGames(); renderDashboard(); drawChart(); renderRoster();
+  toast('Game deleted','warn');
+}
+function renderGames() {
+  const list = document.getElementById('game-list');
+  document.getElementById('game-count').textContent = store.games.length;
+  let w=0,l=0,t=0,rs=0,ra=0;
+  for (const g of store.games) { if(g.res==='W')w++; else if(g.res==='L')l++; else if(g.res==='T')t++; rs+=g.us||0; ra+=g.them||0; }
+  document.getElementById('s-w').textContent = w;
+  document.getElementById('s-l').textContent = l;
+  document.getElementById('s-t').textContent = t;
+  document.getElementById('s-rs').textContent = rs;
+  document.getElementById('s-ra').textContent = ra;
+
+  // team avg
+  let tab=0,tH=0;
+  for (const g of store.games) for (const pid in g.stats) { tab+=g.stats[pid].ab||0; tH+=g.stats[pid].h||0; }
+  document.getElementById('s-avg').textContent = tab ? (tH/tab).toFixed(3).replace(/^0\./,'.') : '.000';
+
+  if (!store.games.length) { list.innerHTML = '<div class="empty">No games logged yet.</div>'; return; }
+  list.innerHTML = store.games.map(g => `
+    <div class="game-item" onclick="openGameStats('${g.id}')">
+      <span class="badge ${g.res.toLowerCase()}">${g.res}</span>
+      <span><strong>${esc(g.opp)}</strong> · <span class="game-meta">${esc(g.type)} · ${esc(g.loc)}${g.notes?' · '+esc(g.notes):''}</span></span>
+      <span class="game-meta">${g.date}</span>
+      <span class="game-score">${g.us}–${g.them}</span>
+      <button class="icon-action" onclick="deleteGame('${g.id}',event)" title="Delete">×</button>
+    </div>`).join('');
+}
+
+let _editingGameId = null;
+function openGameStats(id) {
+  const g = store.games.find(x=>x.id===id);
+  if (!g) return;
+  _editingGameId = id;
+  if (!store.players.length) { toast('Add players to roster first','warn'); return; }
+  document.getElementById('modal-game-title').textContent = `${g.opp} · ${g.date}`;
+  const body = document.getElementById('modal-game-body');
+  body.innerHTML = `<div class="table-wrap"><table class="data"><thead>
+    <tr><th>#</th><th>Player</th><th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>R</th><th>BB</th><th>K</th><th>SB</th></tr>
+  </thead><tbody>${
+    store.players.map(p => {
+      const s = g.stats[p.id] || {};
+      return `<tr data-pid="${p.id}">
+        <td>${esc(p.jersey)}</td><td>${esc(p.name)}</td>
+        ${['ab','h','d','t','hr','rbi','r','bb','k','sb'].map(k =>
+          `<td><input type="number" min="0" data-stat="${k}" value="${s[k]||''}" style="width:46px;padding:4px 6px;font-size:12px;text-align:center"></td>`
+        ).join('')}
+      </tr>`;
+    }).join('')
+  }</tbody></table></div>`;
+  openModal('modal-game');
+}
+function saveGameStats() {
+  const g = store.games.find(x=>x.id===_editingGameId);
+  if (!g) return;
+  document.querySelectorAll('#modal-game-body tr[data-pid]').forEach(tr => {
+    const pid = tr.dataset.pid;
+    const s = {};
+    let any = false;
+    tr.querySelectorAll('input[data-stat]').forEach(i => {
+      const v = parseInt(i.value); if (v && !isNaN(v)) { s[i.dataset.stat] = v; any = true; }
+    });
+    if (any) g.stats[pid] = s; else delete g.stats[pid];
+  });
+  saveStore();
+  closeModal('modal-game');
+  renderGames(); renderRoster();
+  toast('Stats saved');
+}
+
+// ═══════════════════════════════════════════════════════════
+// ROSTER
+// ═══════════════════════════════════════════════════════════
+function addPlayer() {
+  const name = document.getElementById('p-name').value.trim();
+  const jersey = document.getElementById('p-jersey').value.trim();
+  if (!name) { toast('Enter a name','warn'); return; }
+  store.players.push({
+    id: uid(), name, jersey,
+    pos: document.getElementById('p-pos').value,
+    bats: document.getElementById('p-bats').value,
+    throws: document.getElementById('p-throws').value,
+    notes: ''
+  });
+  saveStore();
+  ['p-name','p-jersey'].forEach(id => document.getElementById(id).value='');
+  renderRoster();
+  renderDashboard();
+  toast('Player added');
+}
+function calcStats(playerId) {
+  let ab=0,h=0,d=0,t=0,hr=0,rbi=0,r=0,bb=0,k=0,sb=0,g=0;
+  for (const game of store.games) {
+    const s = game.stats[playerId];
+    if (!s) continue;
+    g++; ab+=s.ab||0; h+=s.h||0; d+=s.d||0; t+=s.t||0; hr+=s.hr||0;
+    rbi+=s.rbi||0; r+=s.r||0; bb+=s.bb||0; k+=s.k||0; sb+=s.sb||0;
+  }
+  const singles = h - d - t - hr;
+  const avg = ab ? h/ab : 0;
+  const obp = (ab+bb) ? (h+bb)/(ab+bb) : 0;
+  const slg = ab ? (singles + 2*d + 3*t + 4*hr)/ab : 0;
+  const ops = obp + slg;
+  return {g,ab,h,d,t,hr,rbi,r,bb,k,sb,avg,obp,slg,ops};
+}
+const fmt = n => n.toFixed(3).replace(/^0\./,'.');
+
+function renderRoster() {
+  const grid = document.getElementById('roster-grid');
+  document.getElementById('p-count').textContent = store.players.length;
+  if (!store.players.length) { grid.innerHTML = '<div class="empty" style="grid-column:1/-1">No players yet — add one above.</div>'; }
+  else {
+    grid.innerHTML = store.players.map(p => {
+      const s = calcStats(p.id);
+      return `<div class="player-card" onclick="openPlayerModal('${p.id}')">
+        <div class="player-head">
+          <div class="jersey">${esc(p.jersey||'#')}</div>
+          <div class="player-info">
+            <div class="player-name">${esc(p.name)}</div>
+            <div class="player-pos">${esc(p.pos)} · B/T: ${esc(p.bats)}/${esc(p.throws)}</div>
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-cell"><span class="v">${s.g}</span><span class="k">G</span></div>
+          <div class="stat-cell"><span class="v">${fmt(s.avg)}</span><span class="k">AVG</span></div>
+          <div class="stat-cell"><span class="v">${fmt(s.obp)}</span><span class="k">OBP</span></div>
+          <div class="stat-cell"><span class="v">${fmt(s.ops)}</span><span class="k">OPS</span></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  // table
+  const tb = document.getElementById('stats-body');
+  if (!store.players.length) { tb.innerHTML = '<tr><td colspan="18" style="text-align:center;color:var(--gray);padding:30px">No players yet</td></tr>'; return; }
+  tb.innerHTML = store.players.map(p => {
+    const s = calcStats(p.id);
+    return `<tr><td class="num">${esc(p.jersey)}</td><td>${esc(p.name)}</td><td>${esc(p.pos)}</td>
+      <td class="num">${s.g}</td><td class="num">${s.ab}</td><td class="num">${s.h}</td>
+      <td class="num">${s.d}</td><td class="num">${s.t}</td><td class="num">${s.hr}</td>
+      <td class="num">${s.rbi}</td><td class="num">${s.r}</td><td class="num">${s.bb}</td>
+      <td class="num">${s.k}</td><td class="num">${s.sb}</td>
+      <td class="num">${fmt(s.avg)}</td><td class="num">${fmt(s.obp)}</td>
+      <td class="num">${fmt(s.slg)}</td><td class="num">${fmt(s.ops)}</td></tr>`;
+  }).join('');
+}
+
+let _editingPlayerId = null;
+function openPlayerModal(id) {
+  const p = store.players.find(x=>x.id===id);
+  if (!p) return;
+  _editingPlayerId = id;
+  const s = calcStats(id);
+  document.getElementById('modal-player-title').textContent = `#${p.jersey} ${p.name}`;
+  document.getElementById('modal-player-meta').textContent = `${p.pos} · Bats ${p.bats} · Throws ${p.throws}`;
+  document.getElementById('modal-player-body').innerHTML = `
+    <div class="stat-row" style="grid-template-columns:repeat(6,1fr);margin-bottom:14px">
+      <div class="stat-cell"><span class="v">${s.g}</span><span class="k">G</span></div>
+      <div class="stat-cell"><span class="v">${s.ab}</span><span class="k">AB</span></div>
+      <div class="stat-cell"><span class="v">${s.h}</span><span class="k">H</span></div>
+      <div class="stat-cell"><span class="v">${s.rbi}</span><span class="k">RBI</span></div>
+      <div class="stat-cell"><span class="v">${fmt(s.avg)}</span><span class="k">AVG</span></div>
+      <div class="stat-cell"><span class="v">${fmt(s.ops)}</span><span class="k">OPS</span></div>
+    </div>
+    <label>Development notes</label>
+    <textarea id="player-notes" rows="6" placeholder="Mechanics work, mental game, season goals...">${esc(p.notes||'')}</textarea>`;
+  openModal('modal-player');
+}
+function saveplayerNotes() {
+  const p = store.players.find(x=>x.id===_editingPlayerId);
+  if (!p) return;
+  p.notes = document.getElementById('player-notes').value;
+  saveStore();
+  closeModal('modal-player');
+  toast('Notes saved');
+}
+function deletePlayer() {
+  if (!confirm('Delete this player and all their stats?')) return;
+  store.players = store.players.filter(p=>p.id!==_editingPlayerId);
+  // remove from game stats too
+  for (const g of store.games) delete g.stats[_editingPlayerId];
+  saveStore();
+  closeModal('modal-player');
+  renderRoster(); renderDashboard();
+  toast('Player deleted','warn');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SKILL RESEARCH / LIBRARY
+// ═══════════════════════════════════════════════════════════
+let _skContent = '', _skMeta = {};
+async function researchSkill() {
+  if (!store.apiKey) { openKeyModal(); return; }
+  const topic = document.getElementById('sk-topic').value.trim();
+  if (!topic) { toast('Enter a topic','warn'); return; }
+  const age = document.getElementById('sk-age').value;
+  const level = document.getElementById('sk-level').value.toLowerCase();
+  const cat = document.getElementById('sk-cat').value;
+  const card = document.getElementById('sk-out-card');
+  const out = document.getElementById('sk-out');
+  const btn = document.getElementById('sk-btn');
+  card.style.display = 'block';
+  btn.disabled = true; btn.textContent = '⏳ Researching...';
+  out.innerHTML = '<span class="cursor"></span>';
+  document.getElementById('sk-out-title').textContent = `${topic}`;
+  _skMeta = {topic, age, level, category: cat};
+
+  const sys = `You are a softball skill development expert. Provide thorough, structured breakdowns.
+Format with these markdown sections: ## Overview, ## Key mechanics, ## Progressions (Beginner → Intermediate → Advanced with specific drills for each), ## Common errors & fixes, ## Coaching cues, ## Practice integration.
+Be specific with drill names, rep counts, and equipment. Tailor difficulty to the age and level given.`;
+
+  await streamClaude({
+    system: sys,
+    max_tokens: 2500,
+    messages: [{role:'user', content: `Research topic: ${topic}\nAge: ${age}, Level: ${level}, Category: ${cat}\nProvide a complete coaching breakdown.`}],
+    onText: (_, full) => { out.innerHTML = md(full) + '<span class="cursor"></span>'; },
+    onDone: (full) => { _skContent = full; out.innerHTML = md(full); btn.disabled=false; btn.textContent='🔍 Research'; toast('Research ready — save it to library'); },
+    onError: (e) => { out.innerHTML='⚠ '+e.message; out.className='output error'; btn.disabled=false; btn.textContent='🔍 Research'; }
+  });
+}
+
+function saveResearch() {
+  if (!_skContent) return;
+  store.research.unshift({ id: uid(), content: _skContent, ...(_skMeta), created: Date.now() });
+  saveStore();
+  renderLibrary();
+  toast('Saved to library');
+}
+function viewResearch(id) {
+  const r = store.research.find(x=>x.id===id);
+  if (!r) return;
+  document.getElementById('modal-view-title').textContent = r.topic;
+  document.getElementById('modal-view-meta').textContent = `${r.category} · ${r.age} · ${r.level} · ${new Date(r.created).toLocaleDateString()}`;
+  document.getElementById('modal-view-body').innerHTML = md(r.content);
+  openModal('modal-view');
+}
+function deleteResearch(id, e) {
+  e?.stopPropagation();
+  if (!confirm('Delete this entry?')) return;
+  store.research = store.research.filter(r=>r.id!==id);
+  saveStore(); renderLibrary();
+  toast('Deleted','warn');
+}
+function renderLibrary() {
+  const grid = document.getElementById('lib-grid');
+  const search = (document.getElementById('lib-search')?.value || '').toLowerCase();
+  const filter = document.getElementById('lib-filter')?.value || '';
+  let items = store.research;
+  if (filter) items = items.filter(r => r.category === filter);
+  if (search) items = items.filter(r => (r.topic+' '+r.content).toLowerCase().includes(search));
+  document.getElementById('lib-count').textContent = items.length;
+  if (!items.length) { grid.innerHTML = '<div class="empty" style="grid-column:1/-1">No saved research yet.</div>'; return; }
+  grid.innerHTML = items.map(r => `
+    <div class="lib-item" onclick="viewResearch('${r.id}')">
+      <div class="lib-title">${esc(r.topic)}</div>
+      <div class="lib-meta">${esc(r.category)} · ${esc(r.age)} · ${esc(r.level)}</div>
+      <div class="lib-preview">${esc(r.content.slice(0,180))}...</div>
+      <div class="lib-actions">
+        <button class="icon-btn btn-sm" onclick="event.stopPropagation();viewResearch('${r.id}')">View</button>
+        <button class="icon-btn btn-sm btn-danger" onclick="deleteResearch('${r.id}',event)">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOURNAMENTS — schedule + dual coach/parent itinerary
+// ═══════════════════════════════════════════════════════════
+let _tGames = [];
+let _tCoach = '', _tParent = '', _tMeta = null, _tView = 'coach';
+const TOURN_MARKER = '---PARENT-VERSION---';
+
+function addTournGame() {
+  _tGames.push({
+    id: uid(),
+    day: _tGames.length ? _tGames[_tGames.length-1].day : 1,
+    gameNum: _tGames.length + 1,
+    time: '', arrive: '', opp: '', field: '', uniform: 'Primary', notes: ''
+  });
+  renderTournGames();
+}
+
+function removeTournGame(id) {
+  _tGames = _tGames.filter(g => g.id !== id);
+  renderTournGames();
+}
+
+function updateTournGame(id, field, value) {
+  const g = _tGames.find(x => x.id === id);
+  if (g) g[field] = value;
+}
+
+function renderTournGames() {
+  const tbody = document.getElementById('t-games');
+  if (!tbody) return;
+  if (!_tGames.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:14px;font-style:italic">No games yet — click + Add game below</td></tr>';
+    return;
+  }
+  tbody.innerHTML = _tGames.map(g => `
+    <tr>
+      <td><input type="number" min="1" value="${g.day}" oninput="updateTournGame('${g.id}','day',parseInt(this.value)||1)" style="width:50px;padding:4px 6px;text-align:center"></td>
+      <td><input type="number" min="1" value="${g.gameNum}" oninput="updateTournGame('${g.id}','gameNum',parseInt(this.value)||1)" style="width:50px;padding:4px 6px;text-align:center"></td>
+      <td><input type="time" value="${g.time}" oninput="updateTournGame('${g.id}','time',this.value)" style="width:110px;padding:4px 6px"></td>
+      <td><input type="time" value="${g.arrive}" oninput="updateTournGame('${g.id}','arrive',this.value)" style="width:110px;padding:4px 6px"></td>
+      <td><input type="text" value="${esc(g.opp)}" placeholder="TBD" oninput="updateTournGame('${g.id}','opp',this.value)" style="width:130px;padding:4px 6px"></td>
+      <td><input type="text" value="${esc(g.field)}" placeholder="Field" oninput="updateTournGame('${g.id}','field',this.value)" style="width:80px;padding:4px 6px"></td>
+      <td><select onchange="updateTournGame('${g.id}','uniform',this.value)" style="width:auto;padding:4px 6px;font-size:12px"><option ${g.uniform==='Primary'?'selected':''}>Primary</option><option ${g.uniform==='Alternate'?'selected':''}>Alternate</option></select></td>
+      <td><input type="text" value="${esc(g.notes)}" placeholder="—" oninput="updateTournGame('${g.id}','notes',this.value)" style="width:140px;padding:4px 6px"></td>
+      <td><button class="icon-action" onclick="removeTournGame('${g.id}')" title="Remove">×</button></td>
+    </tr>
+  `).join('');
+}
+
+function switchTournView(v) {
+  _tView = v;
+  document.getElementById('t-out-coach').style.display = v === 'coach' ? 'block' : 'none';
+  document.getElementById('t-out-parent').style.display = v === 'parent' ? 'block' : 'none';
+  document.querySelectorAll('.tview-btn').forEach(b => {
+    const active = b.dataset.tview === v;
+    b.style.background = active ? 'var(--red)' : 'transparent';
+    b.style.color = active ? '#fff' : 'var(--gray)';
+  });
+}
+
+async function saveTournament() {
+  if (!store.apiKey) { openKeyModal(); return; }
+  const name = document.getElementById('t-name').value.trim();
+  if (!name) { toast('Enter a tournament name','warn'); return; }
+  if (!_tGames.length) { toast('Add at least one game to the schedule','warn'); return; }
+
+  const t = {
+    id: uid(),
+    name,
+    location: document.getElementById('t-loc').value.trim(),
+    startDate: document.getElementById('t-start').value,
+    endDate: document.getElementById('t-end').value,
+    format: document.getElementById('t-format').value,
+    uniformPrimary: document.getElementById('t-uni1').value.trim(),
+    uniformAlt: document.getElementById('t-uni2').value.trim(),
+    parkingInfo: document.getElementById('t-parking').value.trim(),
+    foodPlan: document.getElementById('t-food').value.trim(),
+    notes: document.getElementById('t-notes').value.trim(),
+    games: JSON.parse(JSON.stringify(_tGames)),
+    coachContent: '',
+    parentContent: '',
+    created: Date.now()
+  };
+  _tMeta = t;
+
+  const card = document.getElementById('t-out-card');
+  const coachEl = document.getElementById('t-out-coach');
+  const parentEl = document.getElementById('t-out-parent');
+  const btn = document.getElementById('t-btn');
+  card.style.display = 'block';
+  card.scrollIntoView({behavior:'smooth', block:'start'});
+  btn.disabled = true; btn.textContent = '⏳ Generating itinerary...';
+  document.getElementById('t-out-title').textContent = t.name;
+  coachEl.innerHTML = '<span class="cursor"></span>';
+  parentEl.innerHTML = '';
+  switchTournView('coach');
+
+  const sys = `You are an experienced travel softball coach creating TOURNAMENT ITINERARIES in TWO synchronized versions: COACH and PARENT/PLAYER.
+
+Output both versions in a single response, separated by EXACTLY this marker on its own line: ${TOURN_MARKER}
+
+═══ COACH VERSION (before marker) ═══
+Audience: Head coach and assistant coaches preparing for a tournament weekend.
+Format with markdown. Use the EXACT game data provided — times, opponents, fields, uniforms.
+
+# 📋 Coach Tournament Plan: [name]
+
+## Tournament overview
+- Name, dates, location, format
+- Number of games & projected weekend flow
+
+## Pre-tournament prep (night before / morning of Day 1)
+- Team meeting and final reminders
+- Equipment & scorebook prep
+- Pitcher health & rest plan going in
+
+## Game-by-game playbook
+For EACH game in the schedule:
+### Game [N] · [Day] [Time] vs [Opponent] · [Field]
+- **Arrive by**: [time] | **Uniform**: [exact uniform description]
+- **Pre-game**: warmup, BP if available, scout time
+- **Lineup considerations**: who starts, key matchups
+- **Pitcher plan**: starter, relief options, pitch count target
+- **Defensive positioning**: any shifts or alignment notes
+- **Coaching emphasis**: 2-3 specific points to drive home
+- **Between-game** (after this one): rest, food, mental reset window
+
+## Logistics & coaching roles
+- Equipment manager / dugout / scorebook / first aid assignments
+- Tent / canopy / cooler setup and breakdown
+- Parent communication ownership
+
+## Communication chain
+- Pre-game team text timing
+- Parent group updates
+- Umpire / tournament director contact
+
+## Contingencies
+- Weather (delay, lightning, heat protocol)
+- Player injury chain
+- Game time changes — how info flows
+
+## Coaching staff schedule
+- Who arrives when each day
+- Role coverage if anyone runs late
+
+═══ PARENT/PLAYER VERSION (after marker) ═══
+Audience: Parents and players reading on their phones the night before. CLEAR, SCANNABLE, no coach-speak.
+Use bold for the critical facts (times, uniforms, fields). Keep it under-explained — they'll scan, not read.
+
+# 🥎 Tournament Weekend: [name]
+
+## The quick facts
+- **Where**: [location]
+- **When**: [dates]
+- **Format**: [format in plain language]
+- **# of games**: [count]
+
+## Each game — arrival, uniform, field
+For EACH game in the schedule, use this exact block format:
+
+### 🕐 [Day, Date] · [Time] — vs [Opponent]
+- **Arrive by**: [time] ([X] min before first pitch)
+- **Uniform**: [exact description from primary/alt provided]
+- **Field**: [field assignment]
+${''}
+(Repeat one block per game)
+
+## Where to meet
+- Specific meet location (dugout, parking lot, etc.)
+- Parking & gate info
+- Bathrooms / on-site food if relevant
+
+## What to bring
+
+**PLAYERS:**
+- Equipment checklist (glove, bat, helmet, cleats, slides/turf)
+- BOTH uniforms (clearly labeled bags)
+- Water bottle, electrolytes, snacks
+- Sunscreen, hat, towel
+- Bag for dirty gear
+
+**PARENTS:**
+- Camp chairs, umbrella or canopy
+- Sunscreen, water, cash for gate
+- Snacks/lunch (or follow team meal plan below)
+- Weather contingency gear
+
+## Team food plan
+[Detail food plan]
+
+## What to expect
+- Weekend flow (pool play vs bracket logic)
+- Long-day reality check — pace yourself
+- Weather plan and what we do if it changes
+- Advancement scenarios if applicable
+
+## Game-day mindset (for players)
+- 3-4 short, energizing bullets — age-appropriate, controlling effort, team-first
+
+## Questions?
+- Reach out to head coach via team chat
+- Tournament director info if needed (parents)
+
+Be specific. Use the actual times, opponents, fields, and uniforms provided — do not invent or generalize.`;
+
+  const gameLines = t.games.map((g, i) =>
+    `Game ${i+1}: Day ${g.day} | Game #${g.gameNum} | Time: ${g.time || 'TBD'} | Arrive: ${g.arrive || 'TBD'} | vs ${g.opp || 'TBD'} | Field: ${g.field || 'TBD'} | Uniform: ${g.uniform}${g.notes ? ' | Notes: '+g.notes : ''}`
+  ).join('\n');
+
+  const userPrompt = `Generate the dual-version tournament itinerary now.
+
+TOURNAMENT: ${t.name}
+LOCATION: ${t.location || 'TBD'}
+DATES: ${t.startDate || 'TBD'}${t.endDate && t.endDate !== t.startDate ? ' to '+t.endDate : ''}
+FORMAT: ${t.format}
+TEAM: ${store.settings.teamName} (${store.settings.defaultAge})
+
+UNIFORMS:
+- Primary: ${t.uniformPrimary || 'team primary'}
+- Alternate: ${t.uniformAlt || 'team alternate'}
+
+PARKING / GATE: ${t.parkingInfo || 'standard tournament gate'}
+FOOD PLAN: ${t.foodPlan || 'on your own between games'}
+
+SCHEDULE:
+${gameLines}
+
+GENERAL NOTES: ${t.notes || 'none'}
+
+Remember: COACH version first, then "${TOURN_MARKER}" on its own line, then the PARENT/PLAYER version. Use the actual times, opponents, fields, and uniforms above.`;
+
+  await streamClaude({
+    system: sys,
+    max_tokens: 7000,
+    messages: [{role:'user', content: userPrompt}],
+    onText: (_, full) => {
+      const idx = full.indexOf(TOURN_MARKER);
+      let c, p;
+      if (idx >= 0) { c = full.slice(0, idx).trim(); p = full.slice(idx + TOURN_MARKER.length).trim(); }
+      else { c = full; p = ''; }
+      coachEl.innerHTML = md(c) + (idx < 0 ? '<span class="cursor"></span>' : '');
+      parentEl.innerHTML = md(p) + (idx >= 0 ? '<span class="cursor"></span>' : '');
+    },
+    onDone: (full) => {
+      const idx = full.indexOf(TOURN_MARKER);
+      if (idx >= 0) { _tCoach = full.slice(0, idx).trim(); _tParent = full.slice(idx + TOURN_MARKER.length).trim(); }
+      else { _tCoach = full; _tParent = ''; }
+      coachEl.innerHTML = md(_tCoach);
+      parentEl.innerHTML = _tParent ? md(_tParent) : '<div class="empty">Parent version not generated — try again.</div>';
+
+      t.coachContent = _tCoach;
+      t.parentContent = _tParent;
+      if (!store.tournaments) store.tournaments = [];
+      store.tournaments.unshift(t);
+      saveStore();
+
+      btn.disabled = false; btn.textContent = '💾 Save & generate itinerary';
+
+      // Reset form for next entry
+      ['t-name','t-loc','t-start','t-end','t-uni1','t-uni2','t-parking','t-food','t-notes'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+      });
+      _tGames = [];
+      renderTournGames();
+      renderTournaments();
+      renderDashboard();
+
+      toast('Tournament saved — both versions ready');
+    },
+    onError: (e) => {
+      coachEl.innerHTML = '⚠ '+e.message; coachEl.className='output error';
+      btn.disabled = false; btn.textContent = '💾 Save & generate itinerary';
+    }
+  });
+}
+
+function copyTourn() {
+  const txt = _tView === 'parent' ? _tParent : _tCoach;
+  if (!txt) return;
+  navigator.clipboard.writeText(txt).then(() => toast(`Copied ${_tView} version`));
+}
+
+function printTourn() {
+  const txt = _tView === 'parent' ? _tParent : _tCoach;
+  if (!txt) return;
+  const label = _tView === 'parent' ? 'Tournament Info — Players & Parents' : 'Coach Tournament Plan';
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>${label}</title><style>body{font-family:sans-serif;max-width:780px;margin:30px auto;padding:20px;line-height:1.6;color:#222}h1,h2,h3{color:#0f1f3d}h3{color:#c0392b}@media print{body{margin:0}}</style></head><body>${md(txt)}</body></html>`);
+  w.document.close(); w.print();
+}
+
+function viewTournament(id) {
+  const t = (store.tournaments || []).find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('modal-view-title').textContent = t.name;
+  const meta = [
+    t.location,
+    t.startDate ? (t.endDate && t.endDate !== t.startDate ? `${t.startDate} → ${t.endDate}` : t.startDate) : '',
+    `${t.games?.length || 0} games`,
+    t.format
+  ].filter(Boolean).join(' · ');
+  document.getElementById('modal-view-meta').textContent = meta;
+
+  const body = document.getElementById('modal-view-body');
+  const hasDual = !!t.parentContent;
+  const scheduleHtml = t.games?.length ? `
+    <h3 style="margin:0 0 8px;color:var(--red3)">Schedule</h3>
+    <div class="table-wrap" style="margin-bottom:14px"><table class="data">
+      <thead><tr><th>Day</th><th>#</th><th>Time</th><th>Arrive</th><th>Opponent</th><th>Field</th><th>Uniform</th></tr></thead>
+      <tbody>${t.games.map(g => `<tr>
+        <td>${esc(g.day)}</td><td>${esc(g.gameNum)}</td>
+        <td>${esc(g.time||'—')}</td><td>${esc(g.arrive||'—')}</td>
+        <td>${esc(g.opp||'TBD')}</td><td>${esc(g.field||'TBD')}</td>
+        <td>${esc(g.uniform)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : '';
+
+  if (hasDual) {
+    body.innerHTML = `
+      ${scheduleHtml}
+      <div style="display:flex;gap:0;background:var(--bg);border:1px solid var(--bg4);border-radius:7px;overflow:hidden;margin-bottom:14px;width:fit-content">
+        <button class="mtv-btn" data-mtv="coach" onclick="switchModalTournView('coach')" style="padding:7px 14px;font-size:12px;font-weight:500;border-right:1px solid var(--bg4);background:var(--red);color:#fff">📋 Coach</button>
+        <button class="mtv-btn" data-mtv="parent" onclick="switchModalTournView('parent')" style="padding:7px 14px;font-size:12px;font-weight:500;color:var(--gray);background:transparent">👨‍👩‍👧 Parent/Player</button>
+      </div>
+      <div id="mtv-coach">${md(t.coachContent || '')}</div>
+      <div id="mtv-parent" style="display:none">${md(t.parentContent || '')}</div>`;
+  } else {
+    body.innerHTML = scheduleHtml + md(t.coachContent || '');
+  }
+  openModal('modal-view');
+}
+
+function switchModalTournView(v) {
+  const c = document.getElementById('mtv-coach'); const p = document.getElementById('mtv-parent');
+  if (!c || !p) return;
+  c.style.display = v === 'coach' ? 'block' : 'none';
+  p.style.display = v === 'parent' ? 'block' : 'none';
+  document.querySelectorAll('.mtv-btn').forEach(b => {
+    const active = b.dataset.mtv === v;
+    b.style.background = active ? 'var(--red)' : 'transparent';
+    b.style.color = active ? '#fff' : 'var(--gray)';
+  });
+}
+
+function deleteTournament(id, e) {
+  e?.stopPropagation();
+  if (!confirm('Delete this tournament?')) return;
+  store.tournaments = (store.tournaments || []).filter(t => t.id !== id);
+  saveStore();
+  renderTournaments(); renderDashboard();
+  toast('Tournament deleted','warn');
+}
+
+function renderTournaments() {
+  if (!store.tournaments) store.tournaments = [];
+  const grid = document.getElementById('t-library');
+  const countEl = document.getElementById('t-count');
+  if (!grid || !countEl) return;
+  renderTournGames();
+  countEl.textContent = store.tournaments.length;
+  if (!store.tournaments.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">No tournaments yet — create one above.</div>';
+    return;
+  }
+  grid.innerHTML = store.tournaments.map(t => {
+    const dates = t.startDate ? (t.endDate && t.endDate !== t.startDate ? `${t.startDate} → ${t.endDate}` : t.startDate) : 'Date TBD';
+    const gc = t.games?.length || 0;
+    return `<div class="lib-item" onclick="viewTournament('${t.id}')">
+      <div class="lib-title">${esc(t.name)} ${t.parentContent ? '<span style="background:var(--red);color:#fff;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:500">DUAL</span>' : ''}</div>
+      <div class="lib-meta">${esc(dates)} · ${gc} game${gc!==1?'s':''}${t.location ? ' · '+esc(t.location) : ''}</div>
+      <div class="lib-preview">${esc((t.coachContent || '').slice(0,180))}...</div>
+      <div class="lib-actions">
+        <button class="icon-btn btn-sm" onclick="event.stopPropagation();viewTournament('${t.id}')">View</button>
+        <button class="icon-btn btn-sm btn-danger" onclick="deleteTournament('${t.id}',event)">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// FUNDRAISING — plan, coordinate, track
+// ═══════════════════════════════════════════════════════════
+let _fCoord = '', _fFamily = '', _fMeta = null, _fView = 'coord';
+const FUND_MARKER = '---FAMILY-VERSION---';
+
+function fundraisedTotal(f) {
+  return (f.contributions || []).reduce((s, c) => s + (parseFloat(c.amount) || 0), 0);
+}
+
+function switchFundView(v) {
+  _fView = v;
+  document.getElementById('f-out-coord').style.display = v === 'coord' ? 'block' : 'none';
+  document.getElementById('f-out-family').style.display = v === 'family' ? 'block' : 'none';
+  document.querySelectorAll('.fview-btn').forEach(b => {
+    const active = b.dataset.fview === v;
+    b.style.background = active ? 'var(--red)' : 'transparent';
+    b.style.color = active ? '#fff' : 'var(--gray)';
+  });
+}
+
+async function saveFundraiser() {
+  if (!store.apiKey) { openKeyModal(); return; }
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { toast('Enter a fundraiser name','warn'); return; }
+  const goal = parseFloat(document.getElementById('f-goal-amt').value) || 0;
+  if (goal <= 0) { toast('Enter a goal amount','warn'); return; }
+
+  const f = {
+    id: uid(),
+    name,
+    type: document.getElementById('f-type').value,
+    goal,
+    startDate: document.getElementById('f-start').value,
+    endDate: document.getElementById('f-end').value,
+    coordinator: document.getElementById('f-coord').value.trim(),
+    perPlayerGoal: parseFloat(document.getElementById('f-perplayer').value) || 0,
+    location: document.getElementById('f-loc').value.trim(),
+    description: document.getElementById('f-desc').value.trim(),
+    status: 'active',
+    contributions: [],
+    tasks: [],
+    coordContent: '',
+    familyContent: '',
+    created: Date.now()
+  };
+  _fMeta = f;
+
+  const card = document.getElementById('f-out-card');
+  const coordEl = document.getElementById('f-out-coord');
+  const familyEl = document.getElementById('f-out-family');
+  const btn = document.getElementById('f-btn');
+  card.style.display = 'block';
+  card.scrollIntoView({behavior:'smooth', block:'start'});
+  btn.disabled = true; btn.textContent = '⏳ Generating plans...';
+  document.getElementById('f-out-title').textContent = f.name;
+  coordEl.innerHTML = '<span class="cursor"></span>';
+  familyEl.innerHTML = '';
+  switchFundView('coord');
+
+  const sys = `You are an experienced youth softball team manager creating FUNDRAISING PLANS in TWO synchronized versions: COORDINATOR and FAMILY/PLAYER.
+
+Output both versions in a single response, separated by EXACTLY this marker on its own line: ${FUND_MARKER}
+
+═══ COORDINATOR VERSION (before marker) ═══
+Audience: Team coordinator, treasurer, and core volunteers planning and running the fundraiser.
+Format with markdown.
+
+# 📋 Coordinator Plan: [name]
+
+## Overview
+- Goal, type, dates, per-player ask (if any), location, coordinator(s)
+
+## Timeline & milestones
+Lay out a BACKWARDS timeline from event/end date. For each milestone include the specific tasks and owners:
+- 3+ weeks out
+- 2 weeks out
+- 1 week out
+- Day before
+- Day of
+- Post-event (within 1 week)
+
+## Vendor/venue requirements
+Specific to the fundraiser type (restaurant contact, supply vendor, license needs, permits, raffle compliance, etc.). Include contact protocol and confirmation deadlines.
+
+## Volunteer roles & shifts
+- Roles needed and skill requirements
+- Shift schedule if applicable
+- Recruitment strategy and ask language
+
+## Materials & supplies checklist
+- What to buy / borrow / bring
+- Where to source it
+- Who handles it
+
+## Pricing & financial setup
+- Pricing strategy (per-unit, ticket, suggested donation)
+- Payment collection methods (cash, Venmo, Square, check, Zelle)
+- Cash handling protocol (counting, deposits, two-person rule)
+- Goal math (how many sales/tickets/units needed to hit the goal)
+
+## Marketing & promotion
+- Channels: team chat, social media, neighbors, local businesses, school, church
+- Push timeline (initial announcement → reminders → final call)
+- Templates and assets to provide families
+
+## Day-of logistics
+- Setup time and breakdown
+- Roles & schedule
+- Player and parent participation rules
+- Cash/payment handling chain
+
+## Post-event
+- Thank-yous (vendors, donors, volunteers, players' families)
+- Reporting and bookkeeping (totals, IRS implications if applicable)
+- Lessons-learned doc
+
+## Contingencies
+- Weather plan (outdoor events)
+- Low turnout plan
+- Vendor / venue issues
+
+═══ FAMILY/PLAYER VERSION (after marker) ═══
+Audience: Team families and players. Clear, friendly, action-oriented, scannable. Use bold for key facts. No coach-speak.
+
+# 🎯 [Fundraiser name] — Family Guide
+
+## What we're raising for
+Brief context — what the money is going toward, why it matters.
+
+## How it works
+Plain-language explanation tailored to this specific fundraiser type.
+
+## Your family's part
+- **Per-family goal**: $[amount if specified, otherwise "Whatever you can contribute"]
+- **What you need to do** (3-4 concrete bullets)
+
+## How to participate
+TYPE-SPECIFIC concrete instructions:
+- Restaurant night → come to dinner during X hours, show the flyer, % goes to team
+- Car wash → volunteer shift slots, what to bring (towels, hose, etc.)
+- Raffle → sell tickets to friends/family/coworkers, here's the link
+- Product sale → order form, deadline, distribution day
+- Sponsorship → outreach template, deadline, how to submit logos
+- Concessions → volunteer shift slots, what to bring/wear
+- Spirit night → details on the store/restaurant and how to credit team
+- GoFundMe → share link, sample copy, who to send to
+- Tournament hosting → volunteer roles, what families bring
+- Auction → item donations needed, bidding mechanics
+
+## Where to send money
+- **Payment options**: Venmo to [TBD by coordinator], check payable to [team], cash to [coordinator]
+- **Deadline to turn in**: [date]
+
+## Spreading the word
+- Sample social media post (1-2 sentences families can copy)
+- Sample text message to friends/family
+- Hashtags or link if applicable
+
+## Important dates
+Clean bullet list of every date families need to know.
+
+## Rewards & incentives
+If applicable (top seller, milestones). Skip if not relevant.
+
+## Questions?
+- Contact [coordinator]
+- Reply in team chat
+
+Make this version FRIENDLY and ACTIONABLE. Parents are busy — give them the clearest possible path.`;
+
+  const userPrompt = `Generate the dual-version fundraising plan now.
+
+FUNDRAISER: ${f.name}
+TYPE: ${f.type}
+GOAL: ${f.goal.toLocaleString()}
+${f.perPlayerGoal ? `PER-PLAYER GOAL: ${f.perPlayerGoal.toLocaleString()}` : ''}
+DATES: ${f.startDate || 'TBD'}${f.endDate && f.endDate !== f.startDate ? ' to '+f.endDate : ''}
+LOCATION: ${f.location || 'TBD'}
+COORDINATOR(S): ${f.coordinator || 'Head coach'}
+TEAM: ${store.settings.teamName} (${store.settings.defaultAge})
+ROSTER SIZE: ${store.players.length || '~12'} players
+
+DESCRIPTION:
+${f.description || 'No additional context provided.'}
+
+Output the COORDINATOR version first, then "${FUND_MARKER}" on its own line, then the FAMILY/PLAYER version. Tailor the tactical details to the specific fundraiser type.`;
+
+  await streamClaude({
+    system: sys,
+    max_tokens: 7000,
+    messages: [{role:'user', content: userPrompt}],
+    onText: (_, full) => {
+      const idx = full.indexOf(FUND_MARKER);
+      let c, p;
+      if (idx >= 0) { c = full.slice(0, idx).trim(); p = full.slice(idx + FUND_MARKER.length).trim(); }
+      else { c = full; p = ''; }
+      coordEl.innerHTML = md(c) + (idx < 0 ? '<span class="cursor"></span>' : '');
+      familyEl.innerHTML = md(p) + (idx >= 0 ? '<span class="cursor"></span>' : '');
+    },
+    onDone: (full) => {
+      const idx = full.indexOf(FUND_MARKER);
+      if (idx >= 0) { _fCoord = full.slice(0, idx).trim(); _fFamily = full.slice(idx + FUND_MARKER.length).trim(); }
+      else { _fCoord = full; _fFamily = ''; }
+      coordEl.innerHTML = md(_fCoord);
+      familyEl.innerHTML = _fFamily ? md(_fFamily) : '<div class="empty">Family version not generated — try again.</div>';
+
+      f.coordContent = _fCoord;
+      f.familyContent = _fFamily;
+      if (!store.fundraisers) store.fundraisers = [];
+      store.fundraisers.unshift(f);
+      saveStore();
+
+      btn.disabled = false; btn.textContent = '⚡ Create & generate plans';
+      ['f-name','f-goal-amt','f-start','f-end','f-coord','f-perplayer','f-loc','f-desc'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+      });
+      renderFundraisers();
+      renderDashboard();
+      toast('Fundraiser created — both plans ready');
+    },
+    onError: (e) => {
+      coordEl.innerHTML = '⚠ '+e.message; coordEl.className='output error';
+      btn.disabled = false; btn.textContent = '⚡ Create & generate plans';
+    }
+  });
+}
+
+function copyFund() {
+  const txt = _fView === 'family' ? _fFamily : _fCoord;
+  if (!txt) return;
+  navigator.clipboard.writeText(txt).then(() => toast(`Copied ${_fView} version`));
+}
+
+function printFund() {
+  const txt = _fView === 'family' ? _fFamily : _fCoord;
+  if (!txt) return;
+  const label = _fView === 'family' ? 'Family Fundraiser Guide' : 'Coordinator Fundraiser Plan';
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>${label}</title><style>body{font-family:sans-serif;max-width:780px;margin:30px auto;padding:20px;line-height:1.6;color:#222}h1,h2,h3{color:#0f1f3d}h3{color:#c0392b}@media print{body{margin:0}}</style></head><body>${md(txt)}</body></html>`);
+  w.document.close(); w.print();
+}
+
+function viewFundraiser(id) {
+  const f = (store.fundraisers || []).find(x => x.id === id);
+  if (!f) return;
+  document.getElementById('modal-view-title').textContent = f.name;
+  const raised = fundraisedTotal(f);
+  const pct = f.goal > 0 ? Math.min(100, Math.round(raised / f.goal * 100)) : 0;
+  document.getElementById('modal-view-meta').textContent =
+    `${f.type} · Goal ${f.goal.toLocaleString()}${f.coordinator ? ' · '+f.coordinator : ''}${f.startDate ? ' · '+f.startDate : ''}`;
+  document.getElementById('modal-view-body').innerHTML = renderFundraiserDetail(f, raised, pct);
+  openModal('modal-view');
+}
+
+function renderFundraiserDetail(f, raised, pct) {
+  const playerOpts = store.players.map(p =>
+    `<option value="${p.id}">${esc(p.name)}${p.jersey?' #'+esc(p.jersey):''}</option>`).join('');
+
+  // Per-player breakdown
+  const byPlayer = {};
+  for (const c of f.contributions || []) {
+    const k = c.playerId || '__unattributed';
+    byPlayer[k] = (byPlayer[k] || 0) + (parseFloat(c.amount) || 0);
+  }
+  const playerRows = store.players.map(p => {
+    const amt = byPlayer[p.id] || 0;
+    const goalMet = f.perPlayerGoal > 0 ? Math.round(amt/f.perPlayerGoal*100) : 0;
+    return `<tr><td>${esc(p.jersey||'#')}</td><td>${esc(p.name)}</td><td class="num">${amt.toFixed(2)}</td>${f.perPlayerGoal > 0 ? `<td class="num">${goalMet}%</td>` : ''}</tr>`;
+  });
+  if (byPlayer.__unattributed) {
+    playerRows.push(`<tr><td>—</td><td style="color:var(--gray);font-style:italic">Unattributed</td><td class="num">${byPlayer.__unattributed.toFixed(2)}</td>${f.perPlayerGoal > 0 ? '<td>—</td>' : ''}</tr>`);
+  }
+
+  const hasDual = !!f.familyContent;
+  const today = new Date().toISOString().slice(0,10);
+
+  return `
+    <div style="background:var(--bg);border:1px solid var(--bg4);border-radius:8px;padding:14px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+        <span style="font-size:13px;color:var(--gray)">Progress</span>
+        <span style="font-size:16px;font-weight:600;color:var(--white)">${raised.toFixed(2)} / ${f.goal.toLocaleString()} <span style="color:var(--red3)">(${pct}%)</span></span>
+      </div>
+      <div style="background:var(--bg3);height:10px;border-radius:5px;overflow:hidden">
+        <div style="background:linear-gradient(90deg,var(--red),var(--red2));height:100%;width:${pct}%;transition:width .3s"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center">
+        <label style="margin:0;text-transform:none;letter-spacing:0;color:var(--text);font-size:12px;font-weight:500">Status:</label>
+        <select onchange="updateFundStatus('${f.id}',this.value)" style="width:auto;padding:4px 8px;font-size:12px">
+          <option value="planning" ${f.status==='planning'?'selected':''}>Planning</option>
+          <option value="active" ${f.status==='active'?'selected':''}>Active</option>
+          <option value="complete" ${f.status==='complete'?'selected':''}>Complete</option>
+        </select>
+        <span style="font-size:11px;color:var(--gray)">${(f.contributions||[]).length} contribution${(f.contributions||[]).length!==1?'s':''} · ${(f.tasks||[]).length} task${(f.tasks||[]).length!==1?'s':''}</span>
+        <button class="icon-btn btn-sm btn-danger" style="margin-left:auto" onclick="deleteFundraiser('${f.id}',event)">Delete</button>
+      </div>
+    </div>
+
+    ${f.description ? `<p style="color:var(--text);font-size:13px;margin-bottom:14px;line-height:1.6">${esc(f.description)}</p>` : ''}
+
+    ${hasDual ? `
+      <h3 style="margin:0 0 8px;color:var(--red3)">Plans</h3>
+      <div style="display:flex;gap:0;background:var(--bg);border:1px solid var(--bg4);border-radius:7px;overflow:hidden;margin-bottom:12px;width:fit-content">
+        <button class="mfv-btn" data-mfv="coord" onclick="switchModalFundView('coord')" style="padding:6px 12px;font-size:12px;font-weight:500;border-right:1px solid var(--bg4);background:var(--red);color:#fff">📋 Coordinator</button>
+        <button class="mfv-btn" data-mfv="family" onclick="switchModalFundView('family')" style="padding:6px 12px;font-size:12px;font-weight:500;color:var(--gray);background:transparent">👨‍👩‍👧 Family</button>
+      </div>
+      <div id="mfv-coord" style="background:var(--bg);border:1px solid var(--bg4);border-radius:8px;padding:14px;margin-bottom:14px;max-height:320px;overflow-y:auto">${md(f.coordContent || '')}</div>
+      <div id="mfv-family" style="background:var(--bg);border:1px solid var(--bg4);border-radius:8px;padding:14px;margin-bottom:14px;max-height:320px;overflow-y:auto;display:none">${md(f.familyContent || '')}</div>
+    ` : ''}
+
+    <h3 style="margin:14px 0 8px;color:var(--red3)">Log a contribution</h3>
+    <div class="form-row c3">
+      <div><label>Date</label><input type="date" id="c-date" value="${today}"></div>
+      <div><label>Player</label><select id="c-player"><option value="">— Unattributed —</option>${playerOpts}</select></div>
+      <div><label>Amount ($)</label><input type="number" id="c-amount" min="0" step="0.01" placeholder="50.00"></div>
+    </div>
+    <div class="form-row c3">
+      <div><label>Donor (optional)</label><input type="text" id="c-donor" placeholder="Smith family"></div>
+      <div><label>Method</label><select id="c-method"><option>Cash</option><option>Check</option><option>Venmo</option><option>PayPal</option><option>Zelle</option><option>Square</option><option>Other</option></select></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn" onclick="addContribution('${f.id}')" style="width:100%">+ Log it</button></div>
+    </div>
+
+    ${(f.contributions||[]).length ? `
+      <h3 style="margin:14px 0 8px;color:var(--red3)">Contributions (${f.contributions.length})</h3>
+      <div class="table-wrap" style="max-height:240px;overflow-y:auto;margin-bottom:14px"><table class="data">
+        <thead><tr><th>Date</th><th>Player</th><th>Donor</th><th>Method</th><th>Amount</th><th></th></tr></thead>
+        <tbody>${f.contributions.slice().reverse().map(c => {
+          const p = store.players.find(x => x.id === c.playerId);
+          return `<tr>
+            <td>${esc(c.date)}</td>
+            <td>${p ? esc(p.name) : '<span style="color:var(--gray)">—</span>'}</td>
+            <td>${esc(c.donor || '')}</td>
+            <td>${esc(c.method)}</td>
+            <td class="num">${parseFloat(c.amount).toFixed(2)}</td>
+            <td><button class="icon-action" onclick="removeContribution('${f.id}','${c.id}')" title="Remove">×</button></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>
+    ` : ''}
+
+    ${store.players.length && (f.contributions||[]).length ? `
+      <h3 style="margin:14px 0 8px;color:var(--red3)">By player</h3>
+      <div class="table-wrap" style="max-height:240px;overflow-y:auto;margin-bottom:14px"><table class="data">
+        <thead><tr><th>#</th><th>Player</th><th>Raised</th>${f.perPlayerGoal > 0 ? '<th>% goal</th>' : ''}</tr></thead>
+        <tbody>${playerRows.join('')}</tbody>
+      </table></div>
+    ` : ''}
+
+    <h3 style="margin:14px 0 8px;color:var(--red3)">Tasks</h3>
+    <div class="form-row c3">
+      <div><label>Task</label><input type="text" id="t-title" placeholder="Confirm restaurant booking"></div>
+      <div><label>Assignee</label><input type="text" id="t-assignee" placeholder="Mike"></div>
+      <div style="display:flex;align-items:flex-end;gap:8px">
+        <input type="date" id="t-due" style="flex:1">
+        <button class="btn" onclick="addFundTask('${f.id}')" style="white-space:nowrap">+ Add</button>
+      </div>
+    </div>
+    ${(f.tasks||[]).length ? `
+      <div class="list" style="margin-top:10px;max-height:280px;overflow-y:auto">
+        ${f.tasks.map(t => `
+          <div style="display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--bg4);border-radius:7px;padding:8px 12px">
+            <input type="checkbox" ${t.done?'checked':''} onchange="toggleFundTask('${f.id}','${t.id}')" style="width:16px;height:16px;flex-shrink:0;cursor:pointer">
+            <span style="flex:1;font-size:13px;${t.done?'text-decoration:line-through;color:var(--gray)':''}">${esc(t.title)}${t.assignee ? ' · <span style="color:var(--gray);font-size:11px">'+esc(t.assignee)+'</span>' : ''}${t.dueDate ? ' · <span style="color:var(--amber);font-size:11px">due '+esc(t.dueDate)+'</span>' : ''}</span>
+            <button class="icon-action" onclick="removeFundTask('${f.id}','${t.id}')" title="Remove">×</button>
+          </div>`).join('')}
+      </div>
+    ` : '<div class="empty" style="margin-top:10px">No tasks yet — add one above.</div>'}
+  `;
+}
+
+function switchModalFundView(v) {
+  const c = document.getElementById('mfv-coord'); const p = document.getElementById('mfv-family');
+  if (!c || !p) return;
+  c.style.display = v === 'coord' ? 'block' : 'none';
+  p.style.display = v === 'family' ? 'block' : 'none';
+  document.querySelectorAll('.mfv-btn').forEach(b => {
+    const active = b.dataset.mfv === v;
+    b.style.background = active ? 'var(--red)' : 'transparent';
+    b.style.color = active ? '#fff' : 'var(--gray)';
+  });
+}
+
+function updateFundStatus(id, status) {
+  const f = (store.fundraisers || []).find(x => x.id === id);
+  if (!f) return;
+  f.status = status;
+  saveStore();
+  renderFundraisers();
+  renderDashboard();
+  toast('Status updated');
+}
+
+function addContribution(fid) {
+  const f = (store.fundraisers || []).find(x => x.id === fid);
+  if (!f) return;
+  const amount = parseFloat(document.getElementById('c-amount').value);
+  if (!amount || amount <= 0) { toast('Enter an amount','warn'); return; }
+  f.contributions = f.contributions || [];
+  f.contributions.push({
+    id: uid(),
+    date: document.getElementById('c-date').value || new Date().toISOString().slice(0,10),
+    playerId: document.getElementById('c-player').value || null,
+    amount,
+    donor: document.getElementById('c-donor').value.trim(),
+    method: document.getElementById('c-method').value
+  });
+  saveStore();
+  viewFundraiser(fid);
+  renderFundraisers();
+  renderDashboard();
+  toast(`+${amount.toFixed(2)} logged`);
+}
+
+function removeContribution(fid, cid) {
+  if (!confirm('Remove this contribution?')) return;
+  const f = (store.fundraisers || []).find(x => x.id === fid);
+  if (!f) return;
+  f.contributions = (f.contributions || []).filter(c => c.id !== cid);
+  saveStore();
+  viewFundraiser(fid);
+  renderFundraisers();
+  renderDashboard();
+  toast('Removed','warn');
+}
+
+function addFundTask(fid) {
+  const f = (store.fundraisers || []).find(x => x.id === fid);
+  if (!f) return;
+  const title = document.getElementById('t-title').value.trim();
+  if (!title) { toast('Enter a task','warn'); return; }
+  f.tasks = f.tasks || [];
+  f.tasks.push({
+    id: uid(), title,
+    assignee: document.getElementById('t-assignee').value.trim(),
+    dueDate: document.getElementById('t-due').value,
+    done: false, created: Date.now()
+  });
+  saveStore();
+  viewFundraiser(fid);
+  toast('Task added');
+}
+
+function toggleFundTask(fid, tid) {
+  const f = (store.fundraisers || []).find(x => x.id === fid);
+  if (!f) return;
+  const t = (f.tasks || []).find(x => x.id === tid);
+  if (!t) return;
+  t.done = !t.done;
+  saveStore();
+  viewFundraiser(fid);
+}
+
+function removeFundTask(fid, tid) {
+  const f = (store.fundraisers || []).find(x => x.id === fid);
+  if (!f) return;
+  f.tasks = (f.tasks || []).filter(t => t.id !== tid);
+  saveStore();
+  viewFundraiser(fid);
+}
+
+function deleteFundraiser(id, e) {
+  e?.stopPropagation();
+  if (!confirm('Delete this fundraiser and all contributions/tasks?')) return;
+  store.fundraisers = (store.fundraisers || []).filter(f => f.id !== id);
+  saveStore();
+  closeModal('modal-view');
+  renderFundraisers();
+  renderDashboard();
+  toast('Fundraiser deleted','warn');
+}
+
+function renderFundraisers() {
+  if (!store.fundraisers) store.fundraisers = [];
+  const grid = document.getElementById('f-library');
+  const countEl = document.getElementById('f-count');
+  if (!grid || !countEl) return;
+
+  const all = store.fundraisers;
+  const totalRaised = all.reduce((s, f) => s + fundraisedTotal(f), 0);
+  const totalGoal = all.reduce((s, f) => s + (f.goal || 0), 0);
+  const active = all.filter(f => f.status === 'active').length;
+
+  const playerTotals = {};
+  for (const f of all) {
+    for (const c of f.contributions || []) {
+      if (c.playerId) playerTotals[c.playerId] = (playerTotals[c.playerId] || 0) + (parseFloat(c.amount) || 0);
+    }
+  }
+  let topPlayerId = null, topAmount = 0;
+  for (const pid in playerTotals) {
+    if (playerTotals[pid] > topAmount) { topAmount = playerTotals[pid]; topPlayerId = pid; }
+  }
+  const topP = topPlayerId ? store.players.find(p => p.id === topPlayerId) : null;
+
+  const fR = document.getElementById('f-raised');
+  const fRSub = document.getElementById('f-raised-sub');
+  const fA = document.getElementById('f-active');
+  const fASub = document.getElementById('f-active-sub');
+  const fP = document.getElementById('f-pct');
+  const fPSub = document.getElementById('f-pct-sub');
+  const fT = document.getElementById('f-top');
+  const fTSub = document.getElementById('f-top-sub');
+  if (fR) fR.textContent = '
+function renderDashboard() {
+  const games = store.games;
+  let w=0,l=0,t=0,rs=0,ra=0;
+  for (const g of games) { if(g.res==='W')w++; else if(g.res==='L')l++; else if(g.res==='T')t++; rs+=g.us||0; ra+=g.them||0; }
+  document.getElementById('d-record').textContent = `${w}–${l}${t?'–'+t:''}`;
+  document.getElementById('d-record-sub').textContent = games.length ? `${games.length} games` : 'No games yet';
+  document.getElementById('d-winpct').textContent = games.length ? Math.round(w/games.length*100)+'%' : '—';
+  document.getElementById('d-winpct-sub').textContent = games.length ? `${w} of ${games.length}` : 'Add a game to start';
+
+  // streak (chronological)
+  const sorted = [...games].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  let streakCount = 0, streakKind = '';
+  if (sorted.length) {
+    const last = sorted[sorted.length-1].res;
+    streakKind = last;
+    for (let i = sorted.length-1; i >= 0; i--) {
+      if (sorted[i].res === last) streakCount++; else break;
+    }
+  }
+  document.getElementById('d-streak').textContent = streakCount ? `${streakKind}${streakCount}` : '—';
+  document.getElementById('d-streak-sub').textContent = streakCount ? (streakKind==='W'?'Heating up 🔥':streakKind==='L'?'Bounce back':'Tied up') : '—';
+
+  const diff = rs-ra;
+  document.getElementById('d-rundiff').textContent = games.length ? (diff>=0?'+':'')+diff : '—';
+  document.getElementById('d-rundiff-sub').textContent = games.length ? `${rs} scored / ${ra} allowed` : '—';
+
+  document.getElementById('d-roster').textContent = store.players.length;
+  document.getElementById('d-roster-sub').textContent = store.players.length ? store.players.map(p=>p.name.split(' ')[0]).slice(0,3).join(', ')+(store.players.length>3?`, +${store.players.length-3}`:'') : 'Add players in Roster';
+  document.getElementById('d-plans').textContent = store.plans.length;
+  document.getElementById('d-plans-sub').textContent = store.plans.length ? `Last: ${store.plans[0].title.slice(0,28)}` : 'None saved yet';
+
+  // recent games
+  const dg = document.getElementById('dash-games');
+  const recent = games.slice(0,5);
+  if (!recent.length) { dg.innerHTML = '<div class="empty">No games yet.</div>'; }
+  else {
+    dg.innerHTML = recent.map(g => `
+      <div class="game-item" onclick="goTab('season')">
+        <span class="badge ${g.res.toLowerCase()}">${g.res}</span>
+        <span><strong>${esc(g.opp)}</strong> · <span class="game-meta">${esc(g.loc)}${g.notes?' · '+esc(g.notes):''}</span></span>
+        <span class="game-meta">${g.date}</span>
+        <span class="game-score">${g.us}–${g.them}</span>
+        <span></span>
+      </div>`).join('');
+  }
+  // recent plan
+  const dp = document.getElementById('dash-plan');
+  if (!store.plans.length) { dp.innerHTML = '<div class="empty">No saved plans yet.</div>'; }
+  else {
+    const p = store.plans[0];
+    const preview = p.coachContent || p.content || '';
+    const hasDual = !!p.playerContent;
+    dp.innerHTML = `<div class="lib-item" style="cursor:pointer" onclick="viewPlan('${p.id}')">
+      <div class="lib-title">${esc(p.title)}${hasDual ? ' <span style="background:var(--red);color:#fff;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:500">DUAL</span>' : ''}</div>
+      <div class="lib-meta">${esc(p.dur||'')} · ${new Date(p.created).toLocaleDateString()}</div>
+      <div class="lib-preview">${esc(preview.slice(0,250))}...</div>
+    </div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════════════════
+let _chart = null;
+function drawChart() {
+  const ctx = document.getElementById('chart-record');
+  if (!ctx) return;
+  if (_chart) { _chart.destroy(); _chart = null; }
+  const sorted = [...store.games].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if (!sorted.length) {
+    ctx.getContext('2d').clearRect(0,0,ctx.width,ctx.height);
+    return;
+  }
+  const labels = []; const wins=[]; const losses=[]; const diff=[];
+  let w=0,l=0;
+  sorted.forEach((g,i) => {
+    if (g.res==='W') w++; else if (g.res==='L') l++;
+    labels.push(g.date.slice(5));
+    wins.push(w); losses.push(l);
+    diff.push((g.us||0)-(g.them||0));
+  });
+  _chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {label:'Wins', data:wins, borderColor:'#27ae60', backgroundColor:'rgba(39,174,96,.1)', tension:.3, fill:true},
+        {label:'Losses', data:losses, borderColor:'#e74c3c', backgroundColor:'rgba(231,76,60,.1)', tension:.3, fill:true},
+        {label:'Run diff (game)', data:diff, borderColor:'#3498db', borderDash:[4,4], tension:.2, type:'line', yAxisID:'y2'}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#e8edf5', font:{size:12}}}},
+      scales:{
+        x:{ ticks:{color:'#8892a4',font:{size:11}}, grid:{color:'rgba(255,255,255,.04)'}},
+        y:{ ticks:{color:'#8892a4',font:{size:11}}, grid:{color:'rgba(255,255,255,.04)'}, beginAtZero:true},
+        y2:{ position:'right', ticks:{color:'#3498db',font:{size:11}}, grid:{display:false}}
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderAll() {
+  refreshKeyBtn();
+  refreshHeader();
+  renderDashboard();
+  renderGames();
+  renderRoster();
+  renderPracticeLibrary();
+  renderThreads();
+  renderActiveThread();
+  renderLibrary();
+  renderTournaments();
+  renderFundraisers();
+  drawChart();
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+loadStore();
+document.getElementById('g-date').value = new Date().toISOString().slice(0,10);
+renderAll();
+if (_memoryOnly) toast('Browser storage unavailable — using session memory','warn');
+</script>
+</body>
+</html>
++totalRaised.toFixed(0);
+  if (fRSub) fRSub.textContent = all.length ? `Across ${all.length} fundraiser${all.length!==1?'s':''}` : 'No fundraisers yet';
+  if (fA) fA.textContent = active;
+  if (fASub) fASub.textContent = active ? 'In progress' : 'None active';
+  if (totalGoal > 0) {
+    const pct = Math.round(totalRaised/totalGoal*100);
+    if (fP) fP.textContent = pct + '%';
+    if (fPSub) fPSub.textContent = `of ${totalGoal.toLocaleString()} total`;
+  } else {
+    if (fP) fP.textContent = '—';
+    if (fPSub) fPSub.textContent = '—';
+  }
+  if (fT) fT.textContent = topP ? topP.name.split(' ')[0] : '—';
+  if (fTSub) fTSub.textContent = topP ? `${topAmount.toFixed(0)} raised` : '—';
+
+  countEl.textContent = all.length;
+  if (!all.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">No fundraisers yet — create one above.</div>';
+    return;
+  }
+  const order = {active:0, planning:1, complete:2};
+  const sorted = [...all].sort((a,b) => {
+    const oA = order[a.status] ?? 3, oB = order[b.status] ?? 3;
+    return oA !== oB ? oA - oB : b.created - a.created;
+  });
+  grid.innerHTML = sorted.map(f => {
+    const raised = fundraisedTotal(f);
+    const pct = f.goal > 0 ? Math.min(100, Math.round(raised/f.goal*100)) : 0;
+    const statusColor = f.status === 'active' ? 'var(--green)' : f.status === 'complete' ? 'var(--gray2)' : 'var(--amber)';
+    return `<div class="lib-item" onclick="viewFundraiser('${f.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div class="lib-title" style="flex:1">${esc(f.name)}</div>
+        <span style="background:${statusColor};color:#fff;padding:1px 8px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;flex-shrink:0">${esc(f.status)}</span>
+      </div>
+      <div class="lib-meta">${esc(f.type)}${f.startDate ? ' · '+esc(f.startDate) : ''}${f.coordinator ? ' · '+esc(f.coordinator) : ''}</div>
+      <div style="margin:10px 0 6px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+          <span style="color:var(--gray)">${raised.toFixed(2)} raised</span>
+          <span style="color:var(--white);font-weight:600">${pct}%</span>
+        </div>
+        <div style="background:var(--bg3);height:6px;border-radius:3px;overflow:hidden">
+          <div style="background:linear-gradient(90deg,var(--red),var(--red2));height:100%;width:${pct}%"></div>
+        </div>
+        <div style="text-align:right;font-size:11px;color:var(--gray);margin-top:4px">Goal: ${(f.goal||0).toLocaleString()}</div>
+      </div>
+      <div class="lib-actions">
+        <button class="icon-btn btn-sm" onclick="event.stopPropagation();viewFundraiser('${f.id}')">View / Track</button>
+        <button class="icon-btn btn-sm btn-danger" onclick="deleteFundraiser('${f.id}',event)">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function renderDashboard() {
+  const games = store.games;
+  let w=0,l=0,t=0,rs=0,ra=0;
+  for (const g of games) { if(g.res==='W')w++; else if(g.res==='L')l++; else if(g.res==='T')t++; rs+=g.us||0; ra+=g.them||0; }
+  document.getElementById('d-record').textContent = `${w}–${l}${t?'–'+t:''}`;
+  document.getElementById('d-record-sub').textContent = games.length ? `${games.length} games` : 'No games yet';
+  document.getElementById('d-winpct').textContent = games.length ? Math.round(w/games.length*100)+'%' : '—';
+  document.getElementById('d-winpct-sub').textContent = games.length ? `${w} of ${games.length}` : 'Add a game to start';
+
+  // streak (chronological)
+  const sorted = [...games].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  let streakCount = 0, streakKind = '';
+  if (sorted.length) {
+    const last = sorted[sorted.length-1].res;
+    streakKind = last;
+    for (let i = sorted.length-1; i >= 0; i--) {
+      if (sorted[i].res === last) streakCount++; else break;
+    }
+  }
+  document.getElementById('d-streak').textContent = streakCount ? `${streakKind}${streakCount}` : '—';
+  document.getElementById('d-streak-sub').textContent = streakCount ? (streakKind==='W'?'Heating up 🔥':streakKind==='L'?'Bounce back':'Tied up') : '—';
+
+  const diff = rs-ra;
+  document.getElementById('d-rundiff').textContent = games.length ? (diff>=0?'+':'')+diff : '—';
+  document.getElementById('d-rundiff-sub').textContent = games.length ? `${rs} scored / ${ra} allowed` : '—';
+
+  document.getElementById('d-roster').textContent = store.players.length;
+  document.getElementById('d-roster-sub').textContent = store.players.length ? store.players.map(p=>p.name.split(' ')[0]).slice(0,3).join(', ')+(store.players.length>3?`, +${store.players.length-3}`:'') : 'Add players in Roster';
+  document.getElementById('d-plans').textContent = store.plans.length;
+  document.getElementById('d-plans-sub').textContent = store.plans.length ? `Last: ${store.plans[0].title.slice(0,28)}` : 'None saved yet';
+
+  // recent games
+  const dg = document.getElementById('dash-games');
+  const recent = games.slice(0,5);
+  if (!recent.length) { dg.innerHTML = '<div class="empty">No games yet.</div>'; }
+  else {
+    dg.innerHTML = recent.map(g => `
+      <div class="game-item" onclick="goTab('season')">
+        <span class="badge ${g.res.toLowerCase()}">${g.res}</span>
+        <span><strong>${esc(g.opp)}</strong> · <span class="game-meta">${esc(g.loc)}${g.notes?' · '+esc(g.notes):''}</span></span>
+        <span class="game-meta">${g.date}</span>
+        <span class="game-score">${g.us}–${g.them}</span>
+        <span></span>
+      </div>`).join('');
+  }
+  // recent plan
+  const dp = document.getElementById('dash-plan');
+  if (!store.plans.length) { dp.innerHTML = '<div class="empty">No saved plans yet.</div>'; }
+  else {
+    const p = store.plans[0];
+    const preview = p.coachContent || p.content || '';
+    const hasDual = !!p.playerContent;
+    dp.innerHTML = `<div class="lib-item" style="cursor:pointer" onclick="viewPlan('${p.id}')">
+      <div class="lib-title">${esc(p.title)}${hasDual ? ' <span style="background:var(--red);color:#fff;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:500">DUAL</span>' : ''}</div>
+      <div class="lib-meta">${esc(p.dur||'')} · ${new Date(p.created).toLocaleDateString()}</div>
+      <div class="lib-preview">${esc(preview.slice(0,250))}...</div>
+    </div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════════════════
+let _chart = null;
+function drawChart() {
+  const ctx = document.getElementById('chart-record');
+  if (!ctx) return;
+  if (_chart) { _chart.destroy(); _chart = null; }
+  const sorted = [...store.games].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if (!sorted.length) {
+    ctx.getContext('2d').clearRect(0,0,ctx.width,ctx.height);
+    return;
+  }
+  const labels = []; const wins=[]; const losses=[]; const diff=[];
+  let w=0,l=0;
+  sorted.forEach((g,i) => {
+    if (g.res==='W') w++; else if (g.res==='L') l++;
+    labels.push(g.date.slice(5));
+    wins.push(w); losses.push(l);
+    diff.push((g.us||0)-(g.them||0));
+  });
+  _chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {label:'Wins', data:wins, borderColor:'#27ae60', backgroundColor:'rgba(39,174,96,.1)', tension:.3, fill:true},
+        {label:'Losses', data:losses, borderColor:'#e74c3c', backgroundColor:'rgba(231,76,60,.1)', tension:.3, fill:true},
+        {label:'Run diff (game)', data:diff, borderColor:'#3498db', borderDash:[4,4], tension:.2, type:'line', yAxisID:'y2'}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#e8edf5', font:{size:12}}}},
+      scales:{
+        x:{ ticks:{color:'#8892a4',font:{size:11}}, grid:{color:'rgba(255,255,255,.04)'}},
+        y:{ ticks:{color:'#8892a4',font:{size:11}}, grid:{color:'rgba(255,255,255,.04)'}, beginAtZero:true},
+        y2:{ position:'right', ticks:{color:'#3498db',font:{size:11}}, grid:{display:false}}
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderAll() {
+  refreshKeyBtn();
+  refreshHeader();
+  renderDashboard();
+  renderGames();
+  renderRoster();
+  renderPracticeLibrary();
+  renderThreads();
+  renderActiveThread();
+  renderLibrary();
+  renderTournaments();
+  drawChart();
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+loadStore();
+document.getElementById('g-date').value = new Date().toISOString().slice(0,10);
+renderAll();
+if (_memoryOnly) toast('Browser storage unavailable — using session memory','warn');
+</script>
+</body>
+</html>
